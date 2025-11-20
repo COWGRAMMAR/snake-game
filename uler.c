@@ -422,6 +422,30 @@ void draw_border2(int y, int x, int width, int height)
     }
 }
 
+// ascii art
+void print_art(int y, int x)
+{
+    const char *art[] = {
+        "  ______   __    __   ______   __    __  ________  _______   ________   ______   __    __ ",
+        " /      \\ /  \\  /  | /      \\ /  |  /  |/        |/       \\ /        | /      \\ /  |  /  |",
+        "/$$$$$$  |$$  \\ $$ |/$$$$$$  |$$ | /$$/ $$$$$$$$/ $$$$$$$  |$$$$$$$$/ /$$$$$$  |$$ | /$$/ ",
+        "$$ \\__$$/ $$$  \\$$ |$$ |__$$ |$$ |/$$/  $$ |__    $$ |__$$ |$$ |__    $$ |__$$ |$$ |/$$/  ",
+        "$$      \\ $$$$  $$ |$$    $$ |$$  $$<   $$    |   $$    $$/ $$    |   $$    $$ |$$  $$<   ",
+        " $$$$$$  |$$ $$ $$ |$$$$$$$$ |$$$$$  \\  $$$$$/    $$$$$$$/  $$$$$/    $$$$$$$$ |$$$$$  \\  ",
+        "/  \\__$$ |$$ |$$$$ |$$ |  $$ |$$ |$$  \\ $$ |_____ $$ |      $$ |_____ $$ |  $$ |$$ |$$  \\ ",
+        "$$    $$/ $$ | $$$ |$$ |  $$ |$$ | $$  |$$       |$$ |      $$       |$$ |  $$ |$$ | $$  |",
+        " $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/ $$$$$$$$/ $$/       $$$$$$$$/ $$/   $$/ $$/   $$/ "
+    };
+
+    int lines = sizeof(art) / sizeof(art[0]);
+
+    for (int i = 0; i < lines; i++)
+    {
+        mvprintw(y + i, x, "%s", art[i]);
+    }
+}
+
+
 // menu function
 void menu()
 {
@@ -443,7 +467,6 @@ void menu()
         attron(COLOR_PAIR(3));
         draw_border2(0, 0, screen_width, screen_height);
         draw_border2(start_y, start_x, menu_width, menu_height);
-        draw_border2(screen_height / 2 - 11, screen_width / 2 - 10, 40, 12);
         attroff(COLOR_PAIR(3));
 
         mvprintw(screen_height, 1, "By : COW");
@@ -471,6 +494,8 @@ void menu()
                 mvprintw(start_y + 2 + i, centered_x, "  %s  ", choices[i]);
             }
         }
+
+        print_art(screen_height / 2 - 9, screen_width / 2 - 14);
 
         refresh();
         input_menu = getch();
@@ -577,8 +602,8 @@ int main(int argc, char const *argv[])
 
     set_console_char_size(118, 56);
     init();
-    credit();
-    // menu();
+    //credit();
+     menu();
     // GAME();
     quit_game();
     return 0;
