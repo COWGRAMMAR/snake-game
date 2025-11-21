@@ -47,17 +47,19 @@ bool collide_snake_body(vec2 point);
 vec2 spawn_fruit();
 void draw_border(int y, int x, int width, int height);
 void draw_border2(int y, int x, int width, int height);
+void print_art(int y, int x);
+int center_x(const char *text, int w);
 void quit_game();
 void restart_game();
 void set_console_char_size(short cols, short rows);
 void init();
-void input();
+int input();
 void game_over();
 void update();
 void draw();
-void menu();
-void GAME();
-void credit();
+int menu();
+int GAME();
+int credit();
 //============================================================//
 
 //==================== game functions ====================//
@@ -102,28 +104,24 @@ void draw_border(int y, int x, int width, int height)
 {
     // text score
     char score_str[32];
-    sprintf(score_str, "[   SCORE: %d   ]", score);
+    sprintf(score_str, "[ SCORES: %4d ]", score);
     int score_len = strlen(score_str);
 
     // position of text score
     int top_width = width * 2 + 1;
-    int score_x = x + (top_width - score_len) / 2;
+    int score_x = (x + (top_width - score_len) / 2);
 
     // top row
     mvaddch(y, x, ACS_ULCORNER);
     mvaddch(y, x + top_width, ACS_URCORNER);
 
-    // line before text score
-    for (int i = 1; i < score_x - x; i++)
+    mvaddch(y, x, ACS_ULCORNER);
+    for (int i = 1; i < top_width; i++)
         mvaddch(y, x + i, ACS_HLINE);
+    mvaddch(y, x + top_width, ACS_URCORNER);
 
-    // print text score
-    mvprintw(y, score_x, "%s", score_str);
-
-    // line after text score
-    int after_score = score_x + score_len;
-    for (int i = after_score; i < x + top_width; i++)
-        mvaddch(y, i, ACS_HLINE);
+    // timpa garis dengan string score (garis tidak dihitung lagi)
+    mvprintw(y, score_x + 1, "%s", score_str);
 
     // vertical lines
     for (int i = 0; i < height + 1; i++)
@@ -154,13 +152,33 @@ void quit_game()
 // restart function
 void restart_game()
 {
-    head.x = 0;
-    head.y = 0;
-    dir.x = 1;
-    dir.y = 0;
+    // reset score
     score = 0;
     sprintf(score_str, "[SCORE: %d]", score);
+
+    // reset head position
+    head.x = 0;
+    head.y = 0;
+
+    // reset snake direction
+    dir.x = 1;
+    dir.y = 0;
+
+    // reset flag
+    skip = false;
     is_running = true;
+
+    // clear all old segment positions
+    for (int i = 0; i <= MAX_SEGMENTS; i++)
+    {
+        segments[i].x = 0;
+        segments[i].y = 0;
+    }
+
+    // spawn new fruit
+    fruit = spawn_fruit();
+
+    segments[0] = head;
 }
 
 // game over function
@@ -168,13 +186,18 @@ void game_over()
 {
     while (is_running == false)
     {
-        input();
+        int event = input();
 
-        mvaddstr(screen_height / 2, screen_width - 5, "Game  Over");
-        mvaddstr(screen_height / 2 + 1, screen_width - 16, "[SPACE] to restart, [ESC] to quit");
+        mvaddstr(screen_height / 2, screen_width - 4, "Game  Over");
+        mvaddstr(screen_height / 2 + 1, screen_width - 15, "[SPACE] to restart,[ESC] to quit");
         attron(COLOR_PAIR(3));
         draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
         attroff(COLOR_PAIR(3));
+
+        if (event == 1)
+        {
+            return;
+        }
 
         Sleep(FRAME_TIME);
     }
@@ -185,13 +208,18 @@ void you_win()
 {
     while (is_running == false)
     {
-        input();
+        int event = input();
 
         mvaddstr(screen_height / 2, screen_width - 4, "YOU  WIN");
         mvaddstr(screen_height / 2 + 1, screen_width - 16, "[SPACE] to restart, [ESC] to quit");
         attron(COLOR_PAIR(3));
         draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
         attroff(COLOR_PAIR(3));
+
+        if (event == 1)
+        {
+            return;
+        }
 
         Sleep(FRAME_TIME);
     }
@@ -201,19 +229,21 @@ void you_win()
 void set_console_char_size(short cols, short rows)
 {
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hOut == INVALID_HANDLE_VALUE) return;
+    if (hOut == INVALID_HANDLE_VALUE)
+        return;
 
     // Step 1: Besarkan buffer dulu (aman)
-    COORD bufferSize = { cols, rows };
+    COORD bufferSize = {cols, rows};
     SetConsoleScreenBufferSize(hOut, bufferSize);
 
     // Step 2: Set window size sesuai buffer
-    SMALL_RECT windowSize = { 0, 0, cols - 1, rows - 1 };
+    SMALL_RECT windowSize = {0, 0, cols - 1, rows - 1};
     SetConsoleWindowInfo(hOut, TRUE, &windowSize);
 
     // Step 3: Kunci resize & maximize
     HWND hwnd = GetConsoleWindow();
-    if (!hwnd) return;
+    if (!hwnd)
+        return;
 
     LONG style = GetWindowLong(hwnd, GWL_STYLE);
     style &= ~WS_MAXIMIZEBOX; // hapus tombol maximize
@@ -222,7 +252,7 @@ void set_console_char_size(short cols, short rows)
 
     SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
                  SWP_NOMOVE | SWP_NOSIZE |
-                 SWP_NOZORDER | SWP_FRAMECHANGED);
+                     SWP_NOZORDER | SWP_FRAMECHANGED);
 }
 
 // initialization function
@@ -267,59 +297,61 @@ void init()
 }
 
 // input function
-void input()
+int input()
 {
     int pressed = wgetch(win);
     if (pressed == KEY_LEFT)
     {
         if (dir.x == 1)
         {
-            return;
             skip = true;
+            return 0;
         }
         dir.x = -1;
         dir.y = 0;
     }
-    if (pressed == KEY_RIGHT)
+    else if (pressed == KEY_RIGHT)
     {
         if (dir.x == -1)
         {
-            return;
             skip = true;
+            return 0;
         }
         dir.x = 1;
         dir.y = 0;
     }
-    if (pressed == KEY_UP)
+    else if (pressed == KEY_UP)
     {
         if (dir.y == 1)
         {
-            return;
             skip = true;
+            return 0;
         }
         dir.x = 0;
         dir.y = -1;
     }
-    if (pressed == KEY_DOWN)
+    else if (pressed == KEY_DOWN)
     {
         if (dir.y == -1)
         {
-            return;
             skip = true;
+            return 0;
         }
         dir.x = 0;
         dir.y = 1;
     }
-    if (pressed == ' ')
+    else if (pressed == ' ')
     {
         if (!is_running)
             restart_game();
     }
-    if (pressed == '\e')
+    else if (pressed == 27)
     {
         is_running = false;
-        quit_game();
+        return 1;
     }
+
+    return 0;
 }
 
 // update function
@@ -434,8 +466,7 @@ void print_art(int y, int x)
         " $$$$$$  |$$ $$ $$ |$$$$$$$$ |$$$$$  \\  $$$$$/    $$$$$$$/  $$$$$/    $$$$$$$$ |$$$$$  \\  ",
         "/  \\__$$ |$$ |$$$$ |$$ |  $$ |$$ |$$  \\ $$ |_____ $$ |      $$ |_____ $$ |  $$ |$$ |$$  \\ ",
         "$$    $$/ $$ | $$$ |$$ |  $$ |$$ | $$  |$$       |$$ |      $$       |$$ |  $$ |$$ | $$  |",
-        " $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/ $$$$$$$$/ $$/       $$$$$$$$/ $$/   $$/ $$/   $$/ "
-    };
+        " $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/ $$$$$$$$/ $$/       $$$$$$$$/ $$/   $$/ $$/   $$/ "};
 
     int lines = sizeof(art) / sizeof(art[0]);
 
@@ -445,9 +476,14 @@ void print_art(int y, int x)
     }
 }
 
+// centered text
+int center_x(const char *text, int w)
+{
+    return (w) - (strlen(text) / 2);
+}
 
 // menu function
-void menu()
+int menu()
 {
     int menu_width = 20;
     int menu_height = 5;
@@ -464,6 +500,8 @@ void menu()
 
     while (1)
     {
+        erase();
+
         attron(COLOR_PAIR(3));
         draw_border2(0, 0, screen_width, screen_height);
         draw_border2(start_y, start_x, menu_width, menu_height);
@@ -515,14 +553,15 @@ void menu()
         case 10: // Enter
             if (highlight == 0)
             {
+                return 1; // start game
             }
             if (highlight == 1)
-            { /* options */
+            {
+                return 2; // credit
             }
             if (highlight == 2)
             {
-                endwin();
-                exit(0);
+                return 0; // quit
             }
             break;
         default:
@@ -532,11 +571,19 @@ void menu()
 }
 
 // game function
-void GAME()
+int GAME()
 {
+    restart_game();
+    
     while (is_running)
     {
-        input();
+        int event = input();
+
+        if (event == 1)
+        {
+            return 1;
+        }
+
         if (skip == true)
         {
             skip = false;
@@ -545,31 +592,61 @@ void GAME()
 
         update();
         draw();
+
+        if (!is_running)
+        {
+            return 1;
+        }
     }
+    return 1;
 }
 
 // credit function
-void credit()
+int credit()
 {
     erase();
 
-    int x_text;
-    int y_text;
+    int mid_x_border = (screen_width * 2 + 1) / 2;
+    int mid_x = (screen_width * 2 + 2) / 2;
+    int mid_y = screen_height;
+    int mid_y_border = screen_height - 17;
 
-    int mid_x = screen_width / 2;
-    int mid_y = screen_height / 2;
+    const char *nama[5] = {
+        "RAFIF RAJENDRA",
+        "ABIYU ALDY",
+        "DEMAS MAHEZA",
+        "GIVEN ELYADA",
+        "SEBASTIAN BACH"};
+    int num_nama = 5;
 
     timeout(50);
 
     while (1)
     {
+        erase();
         attron(COLOR_PAIR(3));
         draw_border2(0, 0, screen_width, screen_height);
-        mvprintw(mid_y, mid_x, "halo ges");
         attroff(COLOR_PAIR(3));
 
+        // print_art(screen_height / 2 - 13, screen_width / 2 - 14);
+        draw_border2(mid_y_border, mid_x_border - 24, 24, 10);
+        mvprintw(mid_y_border + 1, center_x("CREDIT", mid_x), "CREDIT");
+
+        for (int i = 0; i < num_nama; i++)
+        {
+            mvprintw(mid_y_border + 3 + i, center_x(nama[i], mid_x), "%s", nama[i]);
+        }
+
+        mvprintw(mid_y_border + 9, center_x("THANKS FOR PLAYING", mid_x), "THANKS FOR PLAYING");
+        mvprintw(mid_y - 1, 3, "[ESC] to return");
+
         refresh();
-        getch();
+
+        int pressed = getch();
+        if (pressed == 27)
+        {
+            return 1;
+        }
     }
 }
 
@@ -588,7 +665,7 @@ int main(int argc, char const *argv[])
             if (sscanf(argv[2], "%dx%d", &screen_width, &screen_height) != 2)
             {
                 printf("Usage: snake [options]\nOptions:\n -d [width]x[height]"
-                       "\tdefine dimensions of the screen\n\nDefault dimensions are 25x20\n");
+                       "\tdefine dimensions of the screen\n\nDefault dimensions are 59x25\n");
                 exit(1);
             }
         }
@@ -596,15 +673,33 @@ int main(int argc, char const *argv[])
     else
     {
         printf("Usage: snake [options]\nOptions:\n -d [width]x[height]"
-               "\tdefine dimensions of the screen\n\nDefault dimensions are 25x20\n");
+               "\tdefine dimensions of the screen\n\nDefault dimensions are 59x25\n");
         exit(1);
     }
 
     set_console_char_size(118, 56);
     init();
-    //credit();
-     menu();
-    // GAME();
+
+    while (1)
+    {
+        int action = menu();
+
+        if (action == 0)
+        {
+            break; // quit
+        }
+
+        if (action == 1)
+        {
+            GAME();
+        }
+
+        if (action == 2)
+        {
+            credit();
+        }
+    }
+
     quit_game();
     return 0;
 }
