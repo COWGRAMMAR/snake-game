@@ -42,6 +42,10 @@ int is_paused = 0;
 
 // fruit
 vec2 fruit;
+
+// pause
+int is_paused = 0;
+
 //========================================================//
 
 //==================== function prototypes ====================//
@@ -60,7 +64,9 @@ int input();
 void game_over();
 void update();
 void draw();
+void print_art();
 int menu();
+void draw_pause();
 int GAME();
 int credit();
 //============================================================//
@@ -177,6 +183,9 @@ void restart_game()
         segments[i].x = 0;
         segments[i].y = 0;
     }
+
+    // reset pause
+    is_paused = 0;
 
     // spawn new fruit
     fruit = spawn_fruit();
@@ -543,7 +552,7 @@ int menu()
 
         mvprintw(screen_height, 1, "By : COW");
 
-        // print menu choices
+        // print menu choicesP
         for (int i = 0; i < num_choice; i++)
         {
             // center
