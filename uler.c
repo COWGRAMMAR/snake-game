@@ -39,6 +39,10 @@ vec2 segments[MAX_SEGMENTS + 1];
 
 // fruit
 vec2 fruit;
+
+// pause
+int is_paused = 0;
+
 //========================================================//
 
 //==================== function prototypes ====================//
@@ -57,7 +61,9 @@ int input();
 void game_over();
 void update();
 void draw();
+void print_art();
 int menu();
+void draw_pause();
 int GAME();
 int credit();
 //============================================================//
@@ -174,6 +180,9 @@ void restart_game()
         segments[i].x = 0;
         segments[i].y = 0;
     }
+
+    // reset pause
+    is_paused = 0;
 
     // spawn new fruit
     fruit = spawn_fruit();
@@ -377,7 +386,16 @@ int input()
             return 1;
         }
     }
+    else if (pressed == 'p' || pressed == 'P') 
+    {
+        is_paused = 1; 
+    }
+    else if (pressed == 8) 
+    {
+        is_paused = 0; 
+    }
 
+   
     return 0;
 }
 
@@ -536,7 +554,7 @@ int menu()
 
         mvprintw(screen_height, 1, "By : COW");
 
-        // print menu choices
+        // print menu choicesP
         for (int i = 0; i < num_choice; i++)
         {
             // center
@@ -597,6 +615,19 @@ int menu()
     }
 }
 
+void draw_pause()
+{
+    // gunakan draw_border di atas layar
+    attron(COLOR_PAIR(3));
+    draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
+    mvprintw(screen_height / 2 - 2, screen_width - 8, "[  GAME  PAUSED  ]");
+    attroff(COLOR_PAIR(3));
+
+    // tulis teks pause di bar atas
+    mvprintw(screen_height / 2, screen_width - 14, "Press [BACKSPACE] to Continue!");
+    refresh();
+}
+
 // game function
 int GAME()
 {
@@ -609,6 +640,13 @@ int GAME()
         if (event == 1)
         {
             return 1;
+        }
+
+        if (is_paused) // jika paused, hanya tampil pesan pause
+        {
+            draw_pause();     
+            Sleep(FRAME_TIME);
+            continue;
         }
 
         if (skip == true)
