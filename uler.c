@@ -59,11 +59,12 @@ void set_console_char_size(short cols, short rows);
 void init();
 int input();
 void game_over();
+void you_win();
 void update();
 void draw();
 void print_art();
 int menu();
-void draw_pause();
+void pause();
 int GAME();
 int credit();
 //============================================================//
@@ -248,17 +249,17 @@ void draw()
     attroff(COLOR_PAIR(3));
 }
 
-void draw_pause()
+void pause()
 {
-    // gunakan draw_border di atas layar
     attron(COLOR_PAIR(3));
     draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
-    mvprintw(screen_height / 2 - 2, screen_width - 8, "[  GAME  PAUSED  ]");
+    mvprintw(screen_height / 2 - 2, screen_width - 9, "[  GAME  PAUSED  ]");
     attroff(COLOR_PAIR(3));
 
-    // tulis teks pause di bar atas
     mvprintw(screen_height / 2, screen_width - 14, "Press [BACKSPACE] to Continue!");
     refresh();
+
+    Sleep(FRAME_TIME);
 }
 
 // ascii art
@@ -537,13 +538,9 @@ int input()
             return 1;
         }
     }
-    else if (pressed == 'p' || pressed == 'P')
-    {
-        is_paused = 1;
-    }
     else if (pressed == 8)
     {
-        is_paused = 0;
+        is_paused = !is_paused;
     }
 
     return 0;
@@ -656,10 +653,14 @@ int GAME()
     {
         int event = input();
 
-        if (is_paused) // jika paused, hanya tampil pesan pause
+        if (event == 1)
         {
-            draw_pause();
-            Sleep(FRAME_TIME);
+            return 1;
+        }
+
+        if (is_paused)
+        {
+            pause();
             continue;
         }
 
