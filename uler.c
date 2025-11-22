@@ -68,7 +68,8 @@ int GAME();
 int credit();
 //============================================================//
 
-//==================== game functions ====================//
+//============================== Game Logic Function ==============================//
+
 // collision
 bool collide(vec2 a, vec2 b)
 {
@@ -104,6 +105,53 @@ vec2 spawn_fruit()
     }
     return fruit;
 }
+
+// update function
+void update()
+{
+    // update snake segments
+    for (int i = score; i > 0; i--)
+    {
+        segments[i] = segments[i - 1];
+    }
+    segments[0] = head;
+
+    // move snake
+    head.x += dir.x;
+    head.y += dir.y;
+
+    // collide with body / wall
+    if (collide_snake_body(head) || head.x < 0 || head.y < 0 || head.x >= screen_width || head.y >= screen_height)
+    {
+        is_running = false;
+        game_over();
+    }
+
+    // eating fruit
+    if (collide(head, fruit))
+    {
+        if (score + 1 <= MAX_SEGMENTS)
+        {
+            score += 1;
+            sprintf(score_str, "SCORE: %d", score);
+            if (score >= MAX_SEGMENTS)
+            {
+                is_running = false;
+                draw();
+                you_win();
+                return;
+            }
+        }
+
+        fruit = spawn_fruit();
+    }
+
+    Sleep(FRAME_TIME);
+}
+
+//============================== Game Logic Function ==============================//
+
+//============================== Draw Function ==============================//
 
 // border in game
 void draw_border(int y, int x, int width, int height)
@@ -143,6 +191,101 @@ void draw_border(int y, int x, int width, int height)
         mvaddch(y + height + 1, x + i, ACS_HLINE);
     }
 }
+
+// border in game for all purpose
+void draw_border2(int y, int x, int width, int height)
+{
+    int top_width = width * 2 + 1;
+    // TOP ROW
+    mvaddch(y, x, ACS_ULCORNER);
+    mvaddch(y, x + top_width, ACS_URCORNER);
+
+    for (int i = 1; i < top_width; i++)
+    {
+        mvaddch(y, x + i, ACS_HLINE);
+    }
+
+    // vertical lines
+    for (int i = 0; i < height + 1; i++)
+    {
+        mvaddch(y + i, x, ACS_VLINE);
+        mvaddch(y + i, x + width * 2 + 1, ACS_VLINE);
+    }
+    // bottom row
+    mvaddch(y + height + 1, x, ACS_LLCORNER);
+    mvaddch(y + height + 1, x + width * 2 + 1, ACS_LRCORNER);
+    for (int i = 1; i < width * 2 + 1; i++)
+    {
+        mvaddch(y + height + 1, x + i, ACS_HLINE);
+    }
+}
+
+// draw function
+void draw()
+{
+    erase();
+
+    // draw fruit
+    attron(COLOR_PAIR(1));
+    mvaddch(fruit.y + 1, fruit.x * 2 + 1, '@');
+    attroff(COLOR_PAIR(1));
+
+    // draw snake
+    attron(COLOR_PAIR(2));
+    for (int i = 0; i < score; i++)
+    {
+        mvaddch(segments[i].y + 1, segments[i].x * 2 + 1, ACS_DIAMOND);
+    }
+    attroff(COLOR_PAIR(2));
+
+    attron(COLOR_PAIR(2));
+    mvaddch(head.y + 1, head.x * 2 + 1, 'O');
+    attroff(COLOR_PAIR(2));
+
+    // draw score etc'
+    attron(COLOR_PAIR(3));
+    draw_border(0, 0, screen_width, screen_height);
+    attroff(COLOR_PAIR(3));
+}
+
+void draw_pause()
+{
+    // gunakan draw_border di atas layar
+    attron(COLOR_PAIR(3));
+    draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
+    mvprintw(screen_height / 2 - 2, screen_width - 8, "[  GAME  PAUSED  ]");
+    attroff(COLOR_PAIR(3));
+
+    // tulis teks pause di bar atas
+    mvprintw(screen_height / 2, screen_width - 14, "Press [BACKSPACE] to Continue!");
+    refresh();
+}
+
+// ascii art
+void print_art(int y, int x)
+{
+    const char *art[] = {
+        "  ______   __    __   ______   __    __  ________  _______   ________   ______   __    __ ",
+        " /      \\ /  \\  /  | /      \\ /  |  /  |/        |/       \\ /        | /      \\ /  |  /  |",
+        "/$$$$$$  |$$  \\ $$ |/$$$$$$  |$$ | /$$/ $$$$$$$$/ $$$$$$$  |$$$$$$$$/ /$$$$$$  |$$ | /$$/ ",
+        "$$ \\__$$/ $$$  \\$$ |$$ |__$$ |$$ |/$$/  $$ |__    $$ |__$$ |$$ |__    $$ |__$$ |$$ |/$$/  ",
+        "$$      \\ $$$$  $$ |$$    $$ |$$  $$<   $$    |   $$    $$/ $$    |   $$    $$ |$$  $$<   ",
+        " $$$$$$  |$$ $$ $$ |$$$$$$$$ |$$$$$  \\  $$$$$/    $$$$$$$/  $$$$$/    $$$$$$$$ |$$$$$  \\  ",
+        "/  \\__$$ |$$ |$$$$ |$$ |  $$ |$$ |$$  \\ $$ |_____ $$ |      $$ |_____ $$ |  $$ |$$ |$$  \\ ",
+        "$$    $$/ $$ | $$$ |$$ |  $$ |$$ | $$  |$$       |$$ |      $$       |$$ |  $$ |$$ | $$  |",
+        " $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/ $$$$$$$$/ $$/       $$$$$$$$/ $$/   $$/ $$/   $$/ "};
+
+    int lines = sizeof(art) / sizeof(art[0]);
+
+    for (int i = 0; i < lines; i++)
+    {
+        mvprintw(y + i, x, "%s", art[i]);
+    }
+}
+
+//============================== Draw Function ==============================//
+
+//============================== Fature For Quit, Paused, Restart, Game over, win Function ==============================//
 
 // quit game function
 void quit_game()
@@ -234,6 +377,10 @@ void you_win()
     }
 }
 
+//============================== Fature For Quit, Paused, Restart, Game over, win Function ==============================//
+
+//============================== Setup Terminal Function ==============================//
+
 // lock console
 void set_console_char_size(short cols, short rows)
 {
@@ -304,6 +451,10 @@ void init()
     // update score string
     sprintf(score_str, "[   SCORE: %d   ]", score);
 }
+
+//============================== Setup Terminal Function ==============================//
+
+//============================== User Input Function ==============================//
 
 // input function
 int input()
@@ -398,127 +549,9 @@ int input()
     return 0;
 }
 
-// update function
-void update()
-{
-    // update snake segments
-    for (int i = score; i > 0; i--)
-    {
-        segments[i] = segments[i - 1];
-    }
-    segments[0] = head;
+//============================== User Input Function ==============================//
 
-    // move snake
-    head.x += dir.x;
-    head.y += dir.y;
-
-    // collide with body / wall
-    if (collide_snake_body(head) || head.x < 0 || head.y < 0 || head.x >= screen_width || head.y >= screen_height)
-    {
-        is_running = false;
-        game_over();
-    }
-
-    // eating fruit
-    if (collide(head, fruit))
-    {
-        if (score + 1 <= MAX_SEGMENTS)
-        {
-            score += 1;
-            sprintf(score_str, "SCORE: %d", score);
-            if (score >= MAX_SEGMENTS)
-            {
-                is_running = false;
-                draw();
-                you_win();
-                return;
-            }
-        }
-
-        fruit = spawn_fruit();
-    }
-
-    Sleep(FRAME_TIME);
-}
-
-// draw function
-void draw()
-{
-    erase();
-
-    // draw fruit
-    attron(COLOR_PAIR(1));
-    mvaddch(fruit.y + 1, fruit.x * 2 + 1, '@');
-    attroff(COLOR_PAIR(1));
-
-    // draw snake
-    attron(COLOR_PAIR(2));
-    for (int i = 0; i < score; i++)
-    {
-        mvaddch(segments[i].y + 1, segments[i].x * 2 + 1, ACS_DIAMOND);
-    }
-    attroff(COLOR_PAIR(2));
-
-    attron(COLOR_PAIR(2));
-    mvaddch(head.y + 1, head.x * 2 + 1, 'O');
-    attroff(COLOR_PAIR(2));
-
-    // draw score etc'
-    attron(COLOR_PAIR(3));
-    draw_border(0, 0, screen_width, screen_height);
-    attroff(COLOR_PAIR(3));
-}
-
-//==================== menu functions ====================//
-// border menu
-void draw_border2(int y, int x, int width, int height)
-{
-    int top_width = width * 2 + 1;
-    // TOP ROW
-    mvaddch(y, x, ACS_ULCORNER);
-    mvaddch(y, x + top_width, ACS_URCORNER);
-
-    for (int i = 1; i < top_width; i++)
-    {
-        mvaddch(y, x + i, ACS_HLINE);
-    }
-
-    // vertical lines
-    for (int i = 0; i < height + 1; i++)
-    {
-        mvaddch(y + i, x, ACS_VLINE);
-        mvaddch(y + i, x + width * 2 + 1, ACS_VLINE);
-    }
-    // bottom row
-    mvaddch(y + height + 1, x, ACS_LLCORNER);
-    mvaddch(y + height + 1, x + width * 2 + 1, ACS_LRCORNER);
-    for (int i = 1; i < width * 2 + 1; i++)
-    {
-        mvaddch(y + height + 1, x + i, ACS_HLINE);
-    }
-}
-
-// ascii art
-void print_art(int y, int x)
-{
-    const char *art[] = {
-        "  ______   __    __   ______   __    __  ________  _______   ________   ______   __    __ ",
-        " /      \\ /  \\  /  | /      \\ /  |  /  |/        |/       \\ /        | /      \\ /  |  /  |",
-        "/$$$$$$  |$$  \\ $$ |/$$$$$$  |$$ | /$$/ $$$$$$$$/ $$$$$$$  |$$$$$$$$/ /$$$$$$  |$$ | /$$/ ",
-        "$$ \\__$$/ $$$  \\$$ |$$ |__$$ |$$ |/$$/  $$ |__    $$ |__$$ |$$ |__    $$ |__$$ |$$ |/$$/  ",
-        "$$      \\ $$$$  $$ |$$    $$ |$$  $$<   $$    |   $$    $$/ $$    |   $$    $$ |$$  $$<   ",
-        " $$$$$$  |$$ $$ $$ |$$$$$$$$ |$$$$$  \\  $$$$$/    $$$$$$$/  $$$$$/    $$$$$$$$ |$$$$$  \\  ",
-        "/  \\__$$ |$$ |$$$$ |$$ |  $$ |$$ |$$  \\ $$ |_____ $$ |      $$ |_____ $$ |  $$ |$$ |$$  \\ ",
-        "$$    $$/ $$ | $$$ |$$ |  $$ |$$ | $$  |$$       |$$ |      $$       |$$ |  $$ |$$ | $$  |",
-        " $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/ $$$$$$$$/ $$/       $$$$$$$$/ $$/   $$/ $$/   $$/ "};
-
-    int lines = sizeof(art) / sizeof(art[0]);
-
-    for (int i = 0; i < lines; i++)
-    {
-        mvprintw(y + i, x, "%s", art[i]);
-    }
-}
+//============================== User Interface Function ==============================//
 
 // centered text
 int center_x(const char *text, int w)
@@ -614,19 +647,6 @@ int menu()
     }
 }
 
-void draw_pause()
-{
-    // gunakan draw_border di atas layar
-    attron(COLOR_PAIR(3));
-    draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
-    mvprintw(screen_height / 2 - 2, screen_width - 8, "[  GAME  PAUSED  ]");
-    attroff(COLOR_PAIR(3));
-
-    // tulis teks pause di bar atas
-    mvprintw(screen_height / 2, screen_width - 14, "Press [BACKSPACE] to Continue!");
-    refresh();
-}
-
 // game function
 int GAME()
 {
@@ -635,11 +655,6 @@ int GAME()
     while (is_running)
     {
         int event = input();
-
-        if (event == 1)
-        {
-            return 1;
-        }
 
         if (is_paused) // jika paused, hanya tampil pesan pause
         {
@@ -714,7 +729,10 @@ int credit()
     }
 }
 
-//==================== main functions ====================//
+//============================== User Interface Function ==============================//
+
+//============================== main Function ==============================//
+
 //  main function
 int main(int argc, char const *argv[])
 {
@@ -767,3 +785,5 @@ int main(int argc, char const *argv[])
     quit_game();
     return 0;
 }
+
+//============================== User main Function ==============================//
