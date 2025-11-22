@@ -599,9 +599,14 @@ int GAME()
     {
         int event = input();
 
-        if (event == 1)
+        if (event == 1 && !is_running)
         {
             return 1;
+        }
+
+        if (event == 1 && is_running)
+        {
+            continue;
         }
 
         if (skip == true)
