@@ -386,16 +386,15 @@ int input()
             return 1;
         }
     }
-    else if (pressed == 'p' || pressed == 'P') 
+    else if (pressed == 'p' || pressed == 'P')
     {
-        is_paused = 1; 
+        is_paused = 1;
     }
-    else if (pressed == 8) 
+    else if (pressed == 8)
     {
-        is_paused = 0; 
+        is_paused = 0;
     }
 
-   
     return 0;
 }
 
@@ -644,7 +643,7 @@ int GAME()
 
         if (is_paused) // jika paused, hanya tampil pesan pause
         {
-            draw_pause();     
+            draw_pause();
             Sleep(FRAME_TIME);
             continue;
         }
