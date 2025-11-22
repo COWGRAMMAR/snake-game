@@ -299,46 +299,60 @@ void init()
 // input function
 int input()
 {
-    int pressed = wgetch(win);
+     int pressed = wgetch(win);
+
+    // save direction lama
+    int dx = dir.x;
+    int dy = dir.y;
+
+    int nx = head.x;
+    int ny = head.y;
+
     if (pressed == KEY_LEFT)
     {
-        if (dir.x == 1)
-        {
+        // posisi kalau belok kiri
+        nx = head.x - 1;
+
+        // blok reverse + blok tembok
+        if (dx == 1 || nx < 0) {
             skip = true;
             return 0;
         }
-        dir.x = -1;
-        dir.y = 0;
+
+        dir.x = -1; dir.y = 0;
     }
     else if (pressed == KEY_RIGHT)
     {
-        if (dir.x == -1)
-        {
+        nx = head.x + 1;
+
+        if (dx == -1 || nx >= screen_width) {
             skip = true;
             return 0;
         }
-        dir.x = 1;
-        dir.y = 0;
+
+        dir.x = 1; dir.y = 0;
     }
     else if (pressed == KEY_UP)
     {
-        if (dir.y == 1)
-        {
+        ny = head.y - 1;
+
+        if (dy == 1 || ny < 0) {
             skip = true;
             return 0;
         }
-        dir.x = 0;
-        dir.y = -1;
+
+        dir.x = 0; dir.y = -1;
     }
     else if (pressed == KEY_DOWN)
     {
-        if (dir.y == -1)
-        {
+        ny = head.y + 1;
+
+        if (dy == -1 || ny >= screen_height) {
             skip = true;
             return 0;
         }
-        dir.x = 0;
-        dir.y = 1;
+
+        dir.x = 0; dir.y = 1;
     }
     else if (pressed == ' ')
     {
