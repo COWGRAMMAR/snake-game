@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <locale.h>
 
 #define MAX_SEGMENTS 1482
 #define FRAME_TIME 220
@@ -59,13 +60,15 @@ void set_console_char_size(short cols, short rows);
 void init();
 int input();
 void game_over();
+void you_win();
 void update();
 void draw();
 void print_art();
 int menu();
-void draw_pause();
+void pause();
 int GAME();
 int credit();
+int info();
 //============================================================//
 
 //============================== Game Logic Function ==============================//
@@ -248,17 +251,17 @@ void draw()
     attroff(COLOR_PAIR(3));
 }
 
-void draw_pause()
+void pause()
 {
-    // gunakan draw_border di atas layar
     attron(COLOR_PAIR(3));
     draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
-    mvprintw(screen_height / 2 - 2, screen_width - 8, "[  GAME  PAUSED  ]");
+    mvprintw(screen_height / 2 - 2, screen_width - 9, "[  GAME  PAUSED  ]");
     attroff(COLOR_PAIR(3));
 
-    // tulis teks pause di bar atas
     mvprintw(screen_height / 2, screen_width - 14, "Press [BACKSPACE] to Continue!");
     refresh();
+
+    Sleep(FRAME_TIME);
 }
 
 // ascii art
@@ -424,6 +427,7 @@ void init()
     nodelay(win, TRUE);
     noecho();
     curs_set(0);
+    setlocale(LC_ALL, "");
 
     // initializze colors
     if (has_colors() == false)
@@ -537,13 +541,9 @@ int input()
             return 1;
         }
     }
-    else if (pressed == 'p' || pressed == 'P')
-    {
-        is_paused = 1;
-    }
     else if (pressed == 8)
     {
-        is_paused = 0;
+        is_paused = !is_paused;
     }
 
     return 0;
@@ -656,10 +656,14 @@ int GAME()
     {
         int event = input();
 
-        if (is_paused) // jika paused, hanya tampil pesan pause
+        if (event == 1)
         {
-            draw_pause();
-            Sleep(FRAME_TIME);
+            return 1;
+        }
+
+        if (is_paused)
+        {
+            pause();
             continue;
         }
 
@@ -688,7 +692,7 @@ int credit()
     int mid_x_border = (screen_width * 2 + 1) / 2;
     int mid_x = (screen_width * 2 + 2) / 2;
     int mid_y = screen_height;
-    int mid_y_border = screen_height - 17;
+    int mid_y_border = screen_height - 15;
 
     const char *nama[5] = {
         "RAFIF RAJENDRA",
@@ -707,7 +711,55 @@ int credit()
         draw_border2(0, 0, screen_width, screen_height);
         attroff(COLOR_PAIR(3));
 
-        // print_art(screen_height / 2 - 13, screen_width / 2 - 14);
+        print_art(screen_height / 2 - 13, screen_width / 2 - 14);
+        draw_border2(mid_y_border, mid_x_border - 24, 24, 10);
+        mvprintw(mid_y_border + 1, center_x("CREDIT", mid_x), "CREDIT");
+
+        for (int i = 0; i < num_nama; i++)
+        {
+            mvprintw(mid_y_border + 3 + i, center_x(nama[i], mid_x), "%s", nama[i]);
+        }
+
+        mvprintw(mid_y_border + 9, center_x("THANKS FOR PLAYING", mid_x), "THANKS FOR PLAYING");
+        mvprintw(mid_y - 1, 3, "[ESC] to return");
+
+        refresh();
+
+        int pressed = getch();
+        if (pressed == 27)
+        {
+            return 1;
+        }
+    }
+}
+
+// info function
+int info()
+{
+    erase();
+
+    int mid_x_border = (screen_width * 2 + 1) / 2;
+    int mid_x = (screen_width * 2 + 2) / 2;
+    int mid_y = screen_height;
+    int mid_y_border = screen_height - 15;
+
+    const char *nama[5] = {
+        "RAFIF RAJENDRA",
+        "ABIYU ALDY",
+        "DEMAS MAHEZA",
+        "GIVEN ELYADA",
+        "SEBASTIAN BACH"};
+    int num_nama = 5;
+
+    timeout(50);
+
+    while (1)
+    {
+        erase();
+        attron(COLOR_PAIR(3));
+        draw_border2(0, 0, screen_width, screen_height);
+        attroff(COLOR_PAIR(3));
+
         draw_border2(mid_y_border, mid_x_border - 24, 24, 10);
         mvprintw(mid_y_border + 1, center_x("CREDIT", mid_x), "CREDIT");
 
@@ -762,7 +814,9 @@ int main(int argc, char const *argv[])
     set_console_char_size(118, 56);
     init();
 
-    while (1)
+    info();
+
+    /*while (1)
     {
         int action = menu();
 
@@ -780,7 +834,7 @@ int main(int argc, char const *argv[])
         {
             credit();
         }
-    }
+    }*/
 
     quit_game();
     return 0;
