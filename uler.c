@@ -37,6 +37,9 @@ vec2 head = {0, 0};
 vec2 dir = {1, 0};
 vec2 segments[MAX_SEGMENTS + 1];
 
+//
+int is_paused = 0;
+
 // fruit
 vec2 fruit;
 
@@ -537,13 +540,9 @@ int input()
             return 1;
         }
     }
-    else if (pressed == 'p' || pressed == 'P')
+    else if (pressed == 8) 
     {
-        is_paused = 1;
-    }
-    else if (pressed == 8)
-    {
-        is_paused = 0;
+        is_paused = !is_paused;
     }
 
     return 0;
@@ -647,6 +646,18 @@ int menu()
     }
 }
 
+void pause() {
+    attron(COLOR_PAIR(3));
+    draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
+    mvprintw(screen_height / 2 - 2, screen_width - 9, "[  GAME  PAUSED  ]");
+    attroff(COLOR_PAIR(3));
+
+    mvprintw(screen_height / 2, screen_width - 15, "Press [BACKSPACE] to Continue!");
+    refresh();
+
+    Sleep(FRAME_TIME);
+}
+
 // game function
 int GAME()
 {
@@ -656,10 +667,13 @@ int GAME()
     {
         int event = input();
 
-        if (is_paused) // jika paused, hanya tampil pesan pause
+        if (event == 1)
         {
-            draw_pause();
-            Sleep(FRAME_TIME);
+            return 1;
+        }
+
+        if (is_paused) {
+            pause();
             continue;
         }
 
