@@ -54,7 +54,7 @@ void restart_game();
 void set_console_char_size(short cols, short rows);
 void init();
 int input();
-void game_over();
+int game_over();
 void update();
 void draw();
 int menu();
@@ -152,6 +152,8 @@ void quit_game()
 // restart function
 void restart_game()
 {
+    nodelay(win, true);
+
     // reset score
     score = 0;
     sprintf(score_str, "[SCORE: %d]", score);
@@ -182,23 +184,27 @@ void restart_game()
 }
 
 // game over function
-void game_over()
+int game_over()
 {
-    while (is_running == false)
+    flushinp();
+    nodelay(win, FALSE);
+    while (1)
     {
-        int event = input();
-
-        mvaddstr(screen_height / 2, screen_width - 4, "Game  Over");
+        mvaddstr(screen_height / 2, screen_width - 4, "Game Over");
         mvaddstr(screen_height / 2 + 1, screen_width - 15, "[SPACE] to restart,[ESC] to quit");
         attron(COLOR_PAIR(3));
         draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
         attroff(COLOR_PAIR(3));
-
+        refresh();
+        int event = input();
         if (event == 1)
         {
-            return;
+            return 1;
         }
-
+        if (event == 2)
+        {
+            return 2;
+        }
         Sleep(FRAME_TIME);
     }
 }
@@ -301,6 +307,18 @@ int input()
 {
     int pressed = wgetch(win);
 
+    // kalau game sudah mati, hanya terima SPACE dan ESC
+    if (!is_running)
+    {
+        if (pressed == ' ')
+            return 2;
+
+        if (pressed == 27)
+            return 1;
+
+        return 0;
+    }
+
     int dx = dir.x;
     int dy = dir.y;
 
@@ -309,66 +327,52 @@ int input()
 
     if (pressed == KEY_LEFT)
     {
-
         nx = head.x - 1;
-
         if (dx == 1 || nx < 0)
         {
             skip = true;
             return 0;
         }
-
         dir.x = -1;
         dir.y = 0;
     }
     else if (pressed == KEY_RIGHT)
     {
         nx = head.x + 1;
-
         if (dx == -1 || nx >= screen_width)
         {
             skip = true;
             return 0;
         }
-
         dir.x = 1;
         dir.y = 0;
     }
     else if (pressed == KEY_UP)
     {
         ny = head.y - 1;
-
         if (dy == 1 || ny < 0)
         {
             skip = true;
             return 0;
         }
-
         dir.x = 0;
         dir.y = -1;
     }
     else if (pressed == KEY_DOWN)
     {
         ny = head.y + 1;
-
         if (dy == -1 || ny >= screen_height)
         {
             skip = true;
             return 0;
         }
-
         dir.x = 0;
         dir.y = 1;
     }
-    else if (pressed == ' ')
+    else
     {
-        if (!is_running)
-            restart_game();
-    }
-    else if (pressed == 27)
-    {
-        is_running = false;
-        return 1;
+        skip = true;
+        return 0;
     }
 
     return 0;
@@ -593,37 +597,26 @@ int menu()
 // game function
 int GAME()
 {
-    restart_game();
-
-    while (is_running)
+    while (1)
     {
-        int event = input();
-
-        if (event == 1 && !is_running)
+        restart_game();
+        while (is_running)
         {
-            return 1;
+            int event = input();
+            if (skip)
+            {
+                skip = false;
+                continue;
+            }
+            update();
+            draw();
         }
-
-        if (event == 1 && is_running)
-        {
-            continue;
-        }
-
-        if (skip == true)
-        {
-            skip = false;
-            continue;
-        }
-
-        update();
-        draw();
-
-        if (!is_running)
+        int result = game_over();
+        if (result == 1)
         {
             return 1;
         }
     }
-    return 1;
 }
 
 // credit function
