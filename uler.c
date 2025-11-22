@@ -367,8 +367,15 @@ int input()
     }
     else if (pressed == 27)
     {
-        is_running = false;
-        return 1;
+        if (is_running)
+        {
+            return 0;
+        }
+        else
+        {
+            is_running = false;
+            return 1;
+        }
     }
 
     return 0;
@@ -601,7 +608,7 @@ int GAME()
 
         if (event == 1)
         {
-            return 0;
+            return 1;
         }
 
         if (skip == true)
