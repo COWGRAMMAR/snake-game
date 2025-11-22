@@ -299,7 +299,145 @@ void init()
 // input function
 int input()
 {
-    i
+    int pressed = wgetch(win);
+
+    int dx = dir.x;
+    int dy = dir.y;
+
+    int nx = head.x;
+    int ny = head.y;
+
+    if (pressed == KEY_LEFT)
+    {
+
+        nx = head.x - 1;
+
+        if (dx == 1 || nx < 0)
+        {
+            skip = true;
+            return 0;
+        }
+
+        dir.x = -1;
+        dir.y = 0;
+    }
+    else if (pressed == KEY_RIGHT)
+    {
+        nx = head.x + 1;
+
+        if (dx == -1 || nx >= screen_width)
+        {
+            skip = true;
+            return 0;
+        }
+
+        dir.x = 1;
+        dir.y = 0;
+    }
+    else if (pressed == KEY_UP)
+    {
+        ny = head.y - 1;
+
+        if (dy == 1 || ny < 0)
+        {
+            skip = true;
+            return 0;
+        }
+
+        dir.x = 0;
+        dir.y = -1;
+    }
+    else if (pressed == KEY_DOWN)
+    {
+        ny = head.y + 1;
+
+        if (dy == -1 || ny >= screen_height)
+        {
+            skip = true;
+            return 0;
+        }
+
+        dir.x = 0;
+        dir.y = 1;
+    }
+    else if (pressed == ' ')
+    {
+        if (!is_running)
+            restart_game();
+    }
+    else if (pressed == 27)
+    {
+        is_running = false;
+        return 1;
+    }
+
+    return 0;
+}
+
+// update function
+void update()
+{
+    // update snake segments
+    for (int i = score; i > 0; i--)
+    {
+        segments[i] = segments[i - 1];
+    }
+    segments[0] = head;
+
+    // move snake
+    head.x += dir.x;
+    head.y += dir.y;
+
+    // collide with body / wall
+    if (collide_snake_body(head) || head.x < 0 || head.y < 0 || head.x >= screen_width || head.y >= screen_height)
+    {
+        is_running = false;
+        game_over();
+    }
+
+    // eating fruit
+    if (collide(head, fruit))
+    {
+        if (score + 1 <= MAX_SEGMENTS)
+        {
+            score += 1;
+            sprintf(score_str, "SCORE: %d", score);
+            if (score >= MAX_SEGMENTS)
+            {
+                is_running = false;
+                draw();
+                you_win();
+                return;
+            }
+        }
+
+        fruit = spawn_fruit();
+    }
+
+    Sleep(FRAME_TIME);
+}
+
+// draw function
+void draw()
+{
+    erase();
+
+    // draw fruit
+    attron(COLOR_PAIR(1));
+    mvaddch(fruit.y + 1, fruit.x * 2 + 1, '@');
+    attroff(COLOR_PAIR(1));
+
+    // draw snake
+    attron(COLOR_PAIR(2));
+    for (int i = 0; i < score; i++)
+    {
+        mvaddch(segments[i].y + 1, segments[i].x * 2 + 1, ACS_DIAMOND);
+    }
+    attroff(COLOR_PAIR(2));
+
+    attron(COLOR_PAIR(2));
+    mvaddch(head.y + 1, head.x * 2 + 1, 'O');
+    attroff(COLOR_PAIR(2));
 
     // draw score etc'
     attron(COLOR_PAIR(3));
@@ -316,6 +454,19 @@ void draw_border2(int y, int x, int width, int height)
     mvaddch(y, x, ACS_ULCORNER);
     mvaddch(y, x + top_width, ACS_URCORNER);
 
+    for (int i = 1; i < top_width; i++)
+    {
+        mvaddch(y, x + i, ACS_HLINE);
+    }
+
+    // vertical lines
+    for (int i = 0; i < height + 1; i++)
+    {
+        mvaddch(y + i, x, ACS_VLINE);
+        mvaddch(y + i, x + width * 2 + 1, ACS_VLINE);
+    }
+    // bottom row
+    mvaddch(y + height + 1, x, ACS_LLCORNER);
     mvaddch(y + height + 1, x + width * 2 + 1, ACS_LRCORNER);
     for (int i = 1; i < width * 2 + 1; i++)
     {
