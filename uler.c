@@ -39,9 +39,7 @@ vec2 dir = {1, 0};
 vec2 segments[MAX_SEGMENTS + 1];
 
 // fruit
-vec2 fruits[20]; // MAX fruit in the arena
-#define fruit fruits[0]
-int fruit_count = 3;
+vec2 fruit;
 
 // pause
 int is_paused = 0;
@@ -231,10 +229,7 @@ void draw()
 
     // draw fruit
     attron(COLOR_PAIR(1));
-    for (int i = 0; i < fruit_count; i++)
-    {
-        mvaddch(fruits[i].y + 1, fruits[i].x * 2 + 1, '@');
-    }
+    mvaddch(fruit.y + 1, fruit.x * 2 + 1, '@');
     attroff(COLOR_PAIR(1));
 
     // draw snake
@@ -280,7 +275,8 @@ void print_art(int y, int x)
         " $$$$$$  |$$ $$ $$ |$$$$$$$$ |$$$$$  \\  $$$$$/    $$$$$$$/  $$$$$/    $$$$$$$$ |$$$$$  \\  ",
         "/  \\__$$ |$$ |$$$$ |$$ |  $$ |$$ |$$  \\ $$ |_____ $$ |      $$ |_____ $$ |  $$ |$$ |$$  \\ ",
         "$$    $$/ $$ | $$$ |$$ |  $$ |$$ | $$  |$$       |$$ |      $$       |$$ |  $$ |$$ | $$  |",
-        " $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/ $$$$$$$$/ $$/       $$$$$$$$/ $$/   $$/ $$/   $$/ "};
+        " $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/ $$$$$$$$/ $$/       $$$$$$$$/ $$/   $$/ $$/   $$/ "
+    };
 
     int lines = sizeof(art) / sizeof(art[0]);
 
@@ -456,8 +452,8 @@ void init()
     init_pair(10, COLOR_NAVYBLUE, -1);
     init_pair(11, COLOR_GREENGRASS, -1);
 
-    // spawn fruit
-    fruit = spawn_fruit();
+    fruit.x = 1 + rand() % (screen_width - 2);
+    fruit.y = 1 + rand() % (screen_height - 2);
 
     // update score string
     sprintf(score_str, "[   SCORE: %d   ]", score);
