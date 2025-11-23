@@ -11,6 +11,8 @@
 #define COLOR_GREENGRASS 11
 
 //==================== structs & vars ====================//
+
+// struct variable
 typedef struct
 {
     int x;
@@ -114,18 +116,12 @@ bool check_fruit_collision(int current_index)
 // fruit spawn
 void spawn_fruits()
 {
-    // spawn all fruit where is active
-    for (int i = 0; i < fruit_count; i++)
+    fruit_count = 1;
+    do
     {
-        // seeking for valid position for next new fruit 
-        do
-        {
-            fruits[i].x = 1 + rand() % (screen_width - 2);
-            fruits[i].y = 1 + rand() % (screen_height - 2);
-        } while (collide(head, fruits[i]) ||
-                 collide_snake_body(fruits[i]) ||
-                 check_fruit_collision(i)); // check collison from another fruit
-    }
+        fruits[0].x = 1 + rand() % (screen_width - 2);
+        fruits[0].y = 1 + rand() % (screen_height - 2);
+    } while (collide(head, fruits[0]) || collide_snake_body(fruits[0]));
 }
 
 // update function
@@ -156,10 +152,24 @@ void update()
         new_fruit_count = MAX_FRUITS;
     }
 
-    if (new_fruit_count != fruit_count)
+    // only add 1 new fruit if new count added
+    if (new_fruit_count > fruit_count)
     {
-        fruit_count = new_fruit_count;
-        spawn_fruits(); // respawn all fruits with the new count
+        int fruits_to_add = new_fruit_count - fruit_count;
+
+        for (int i = 0; i < fruits_to_add; i++)
+        {
+            // spawn new fruit at valid position
+            vec2 new_fruit;
+            do
+            {
+                new_fruit.x = 1 + rand() % (screen_width - 2);
+                new_fruit.y = 1 + rand() % (screen_height - 2);
+            } while (collide(head, new_fruit) || collide_snake_body(new_fruit));
+
+            fruits[fruit_count] = new_fruit;
+            fruit_count++;
+        }
     }
 
     // Check eating fruits
@@ -185,8 +195,7 @@ void update()
                     fruits[i].x = 1 + rand() % (screen_width - 2);
                     fruits[i].y = 1 + rand() % (screen_height - 2);
                 } while (collide(head, fruits[i]) ||
-                         collide_snake_body(fruits[i]) ||
-                         check_fruit_collision(i));
+                         collide_snake_body(fruits[i]));
             }
             break; // only eat 1 fruit/frame
         }
@@ -214,13 +223,12 @@ void draw_border(int y, int x, int width, int height)
     // top row
     mvaddch(y, x, ACS_ULCORNER);
     mvaddch(y, x + top_width, ACS_URCORNER);
-
-    mvaddch(y, x, ACS_ULCORNER);
     for (int i = 1; i < top_width; i++)
+    {
         mvaddch(y, x + i, ACS_HLINE);
-    mvaddch(y, x + top_width, ACS_URCORNER);
+    }
 
-    // timpa garis dengan string score (garis tidak dihitung lagi)
+    // print score in the middle of top row
     mvprintw(y, score_x + 1, "%s", score_str);
 
     // vertical lines
@@ -229,6 +237,7 @@ void draw_border(int y, int x, int width, int height)
         mvaddch(y + i, x, ACS_VLINE);
         mvaddch(y + i, x + width * 2 + 1, ACS_VLINE);
     }
+
     // bottom row
     mvaddch(y + height + 1, x, ACS_LLCORNER);
     mvaddch(y + height + 1, x + width * 2 + 1, ACS_LRCORNER);
@@ -242,10 +251,10 @@ void draw_border(int y, int x, int width, int height)
 void draw_border2(int y, int x, int width, int height)
 {
     int top_width = width * 2 + 1;
+
     // TOP ROW
     mvaddch(y, x, ACS_ULCORNER);
     mvaddch(y, x + top_width, ACS_URCORNER);
-
     for (int i = 1; i < top_width; i++)
     {
         mvaddch(y, x + i, ACS_HLINE);
@@ -257,6 +266,7 @@ void draw_border2(int y, int x, int width, int height)
         mvaddch(y + i, x, ACS_VLINE);
         mvaddch(y + i, x + width * 2 + 1, ACS_VLINE);
     }
+
     // bottom row
     mvaddch(y + height + 1, x, ACS_LLCORNER);
     mvaddch(y + height + 1, x + width * 2 + 1, ACS_LRCORNER);
@@ -279,16 +289,17 @@ void draw()
     }
     attroff(COLOR_PAIR(1));
 
-    // draw snake
+    // draw snake head
+    attron(COLOR_PAIR(2));
+    mvaddch(head.y + 1, head.x * 2 + 1, 'O');
+    attroff(COLOR_PAIR(2));
+
+    // draw snake body
     attron(COLOR_PAIR(2));
     for (int i = 0; i < score; i++)
     {
         mvaddch(segments[i].y + 1, segments[i].x * 2 + 1, ACS_DIAMOND);
     }
-    attroff(COLOR_PAIR(2));
-
-    attron(COLOR_PAIR(2));
-    mvaddch(head.y + 1, head.x * 2 + 1, 'O');
     attroff(COLOR_PAIR(2));
 
     // draw score etc'
@@ -297,22 +308,26 @@ void draw()
     attroff(COLOR_PAIR(3));
 }
 
+// draw pause function
 void pause()
 {
+    // draw pause menu box
     attron(COLOR_PAIR(3));
     draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
     mvprintw(screen_height / 2 - 2, screen_width - 9, "[  GAME  PAUSED  ]");
     attroff(COLOR_PAIR(3));
 
+    // draw pause menu content
     mvprintw(screen_height / 2, screen_width - 14, "Press [BACKSPACE] to Continue!");
     refresh();
 
     Sleep(FRAME_TIME);
 }
 
-// ascii art
+// ascii art function
 void print_art(int y, int x)
 {
+    // asci art is stored in an array
     const char *art[] = {
         "  ______   __    __   ______   __    __  ________  _______   ________   ______   __    __ ",
         " /      \\ /  \\  /  | /      \\ /  |  /  |/        |/       \\ /        | /      \\ /  |  /  |",
@@ -326,6 +341,7 @@ void print_art(int y, int x)
 
     int lines = sizeof(art) / sizeof(art[0]);
 
+    // print ascii art
     for (int i = 0; i < lines; i++)
     {
         mvprintw(y + i, x, "%s", art[i]);
@@ -334,13 +350,14 @@ void print_art(int y, int x)
 
 //============================== Draw Function ==============================//
 
-//============================== Fature For Quit, Paused, Restart, Game over, win Function ==============================//
+//============================== Fature For Quit, Paused, Restart, Game over, win, settings Function ==============================//
 
 // quit game function
 void quit_game()
 {
     // exit cleanly from application
     endwin();
+
     // clear screen, place cursor on top, and un_hide cursor
     printf("\e[1;1H\e[2J");
     printf("\e[?25h");
@@ -358,6 +375,13 @@ void restart_game()
     head.x = 0;
     head.y = 0;
 
+    // clear all old snake segment positions
+    for (int i = 0; i <= MAX_SEGMENTS; i++)
+    {
+        segments[i].x = 0;
+        segments[i].y = 0;
+    }
+
     // reset snake direction
     dir.x = 1;
     dir.y = 0;
@@ -365,13 +389,6 @@ void restart_game()
     // reset flag
     skip = false;
     is_running = true;
-
-    // clear all old segment positions
-    for (int i = 0; i <= MAX_SEGMENTS; i++)
-    {
-        segments[i].x = 0;
-        segments[i].y = 0;
-    }
 
     // reset pause
     is_paused = 0;
@@ -389,12 +406,16 @@ void game_over()
     {
         int event = input();
 
-        mvaddstr(screen_height / 2, screen_width - 4, "Game  Over");
-        mvaddstr(screen_height / 2 + 1, screen_width - 15, "[SPACE] to restart,[ESC] to quit");
+        // draw game over menu box
         attron(COLOR_PAIR(3));
         draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
         attroff(COLOR_PAIR(3));
 
+        // draw game over menu content
+        mvaddstr(screen_height / 2, screen_width - 4, "Game  Over");
+        mvaddstr(screen_height / 2 + 1, screen_width - 15, "[SPACE] to restart,[ESC] to quit");
+
+        // return to menu
         if (event == 1)
         {
             return;
@@ -411,12 +432,16 @@ void you_win()
     {
         int event = input();
 
-        mvaddstr(screen_height / 2, screen_width - 3, "YOU  WIN");
-        mvaddstr(screen_height / 2 + 1, screen_width - 16, "[SPACE] to restart, [ESC] to quit");
+        // draw you win menu box
         attron(COLOR_PAIR(3));
         draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
         attroff(COLOR_PAIR(3));
 
+        // draw you win menu content
+        mvaddstr(screen_height / 2, screen_width - 3, "YOU  WIN");
+        mvaddstr(screen_height / 2 + 1, screen_width - 16, "[SPACE] to restart, [ESC] to quit");
+
+        // return to menu
         if (event == 1)
         {
             return;
@@ -426,7 +451,7 @@ void you_win()
     }
 }
 
-//============================== Fature For Quit, Paused, Restart, Game over, win Function ==============================//
+//============================== Fature For Quit, Paused, Restart, Game over, win, settings Function ==============================//
 
 //============================== Setup Terminal Function ==============================//
 
@@ -437,24 +462,26 @@ void set_console_char_size(short cols, short rows)
     if (hOut == INVALID_HANDLE_VALUE)
         return;
 
-    // Step 1: Besarkan buffer dulu (aman)
+    // step 1: Increase the buffer first (safe)
     COORD bufferSize = {cols, rows};
     SetConsoleScreenBufferSize(hOut, bufferSize);
 
-    // Step 2: Set window size sesuai buffer
+    // step 2: Set the window size according to the buffer
     SMALL_RECT windowSize = {0, 0, cols - 1, rows - 1};
     SetConsoleWindowInfo(hOut, TRUE, &windowSize);
 
-    // Step 3: Kunci resize & maximize
+    // step 3: lock resize & maximize
     HWND hwnd = GetConsoleWindow();
     if (!hwnd)
         return;
 
+    // setup feature for windows terminal
     LONG style = GetWindowLong(hwnd, GWL_STYLE);
-    style &= ~WS_MAXIMIZEBOX; // hapus tombol maximize
-    style &= ~WS_SIZEBOX;     // matikan resize via drag
+    style &= ~WS_MAXIMIZEBOX; // remove maximize button
+    style &= ~WS_SIZEBOX;     // disabled resize via drag
     SetWindowLong(hwnd, GWL_STYLE, style);
 
+    // idk man what is this i just ai it for this whole function🥀🥀🥀
     SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
                  SWP_NOMOVE | SWP_NOSIZE |
                      SWP_NOZORDER | SWP_FRAMECHANGED);
@@ -487,9 +514,11 @@ void init()
     }
     start_color();
 
+    // custom colors list
     init_color(COLOR_GREENGRASS, 78, 639, 114);
     init_color(COLOR_NAVYBLUE, 27, 12, 369);
 
+    // list if colors to be used in function
     can_change_color();
     use_default_colors();
     init_pair(1, COLOR_RED, -1);
@@ -498,6 +527,7 @@ void init()
     init_pair(10, COLOR_NAVYBLUE, -1);
     init_pair(11, COLOR_GREENGRASS, -1);
 
+    // spawn fruit for the first time
     spawn_fruits();
 
     // update score string
@@ -519,6 +549,7 @@ int input()
     int nx = head.x;
     int ny = head.y;
 
+    // input for left
     if (pressed == KEY_LEFT)
     {
 
@@ -533,6 +564,8 @@ int input()
         dir.x = -1;
         dir.y = 0;
     }
+
+    // input for right
     else if (pressed == KEY_RIGHT)
     {
         nx = head.x + 1;
@@ -546,6 +579,8 @@ int input()
         dir.x = 1;
         dir.y = 0;
     }
+
+    // input for up
     else if (pressed == KEY_UP)
     {
         ny = head.y - 1;
@@ -559,6 +594,8 @@ int input()
         dir.x = 0;
         dir.y = -1;
     }
+
+    // input for down
     else if (pressed == KEY_DOWN)
     {
         ny = head.y + 1;
@@ -572,11 +609,15 @@ int input()
         dir.x = 0;
         dir.y = 1;
     }
+
+    // input for space bar
     else if (pressed == ' ')
     {
         if (!is_running)
             restart_game();
     }
+
+    // input for esc
     else if (pressed == 27)
     {
         if (is_running)
@@ -589,6 +630,8 @@ int input()
             return 1;
         }
     }
+
+    // input for backspace
     else if (pressed == 8)
     {
         is_paused = !is_paused;
@@ -601,7 +644,7 @@ int input()
 
 //============================== User Interface Function ==============================//
 
-// centered text
+// centered text function
 int center_x(const char *text, int w)
 {
     return (w) - (strlen(text) / 2);
@@ -627,12 +670,17 @@ int menu()
     {
         erase();
 
+        // draw main menu box
         attron(COLOR_PAIR(3));
-        draw_border2(0, 0, screen_width, screen_height);
-        draw_border2(start_y, start_x, menu_width, menu_height);
+        draw_border2(0, 0, screen_width, screen_height);         // outer box
+        draw_border2(start_y, start_x, menu_width, menu_height); // inner box
         attroff(COLOR_PAIR(3));
 
+        // draw creator name
         mvprintw(screen_height, 1, "By : D.R.A.G.S");
+
+        // draw ascii art
+        print_art(screen_height / 2 - 9, screen_width / 2 - 14);
 
         // print menu choicesP
         for (int i = 0; i < num_choice; i++)
@@ -659,8 +707,6 @@ int menu()
             }
         }
 
-        print_art(screen_height / 2 - 9, screen_width / 2 - 14);
-
         refresh();
         input_menu = getch();
 
@@ -683,7 +729,7 @@ int menu()
             }
             if (highlight == 1)
             {
-                return 2; // info
+                return 2; // settings
             }
             if (highlight == 2)
             {
@@ -744,9 +790,10 @@ int credit()
     erase();
 
     int mid_x_border = (screen_width * 2 + 1) / 2;
+    int mid_y_border = screen_height - 15;
+
     int mid_x = (screen_width * 2 + 2) / 2;
     int mid_y = screen_height;
-    int mid_y_border = screen_height - 15;
 
     const char *nama[5] = {
         "RAFIF RAJENDRA",
@@ -761,24 +808,30 @@ int credit()
     while (1)
     {
         erase();
+
+        // draw credit menu box
         attron(COLOR_PAIR(3));
-        draw_border2(0, 0, screen_width, screen_height);
+        draw_border2(0, 0, screen_width, screen_height);       // outer box
+        draw_border2(mid_y_border, mid_x_border - 24, 24, 10); // inner box
         attroff(COLOR_PAIR(3));
 
+        // draw ascii art
         print_art(screen_height / 2 - 13, screen_width / 2 - 14);
-        draw_border2(mid_y_border, mid_x_border - 24, 24, 10);
-        mvprintw(mid_y_border + 1, center_x("CREDIT", mid_x), "CREDIT");
+
+        // draw content
+        mvprintw(mid_y_border + 1, center_x("CREDIT", mid_x), "CREDIT"); // credit text
 
         for (int i = 0; i < num_nama; i++)
         {
-            mvprintw(mid_y_border + 3 + i, center_x(nama[i], mid_x), "%s", nama[i]);
+            mvprintw(mid_y_border + 3 + i, center_x(nama[i], mid_x), "%s", nama[i]); // name text
         }
 
-        mvprintw(mid_y_border + 9, center_x("THANKS FOR PLAYING", mid_x), "THANKS FOR PLAYING");
-        mvprintw(mid_y - 1, 3, "[ESC] to return");
+        mvprintw(mid_y_border + 9, center_x("THANKS FOR PLAYING", mid_x), "THANKS FOR PLAYING"); // thanks text
+        mvprintw(mid_y - 1, 3, "[ESC] to return");                                               // esc text
 
         refresh();
 
+        // back to main menu
         int pressed = getch();
         if (pressed == 27)
         {
@@ -794,6 +847,7 @@ int info()
 
     int mid_x_border = (screen_width * 2 + 1) / 2;
     int mid_y_border = screen_height - 16;
+
     int mid_x_h = (screen_width * 2 + 2) / 2;
     int mid_x = ((screen_width * 2 + 2) / 2) - 6;
     int mid_y = screen_height;
@@ -803,15 +857,20 @@ int info()
     while (1)
     {
         erase();
+
+        // draw settings menu box
         attron(COLOR_PAIR(3));
-        draw_border2(0, 0, screen_width, screen_height);
+        draw_border2(0, 0, screen_width, screen_height);       // outer box
+        draw_border2(mid_y_border, mid_x_border - 24, 24, 11); // inner box
         attroff(COLOR_PAIR(3));
 
+        // draw ascii art
         print_art(screen_height / 2 - 13, screen_width / 2 - 14);
-        draw_border2(mid_y_border, mid_x_border - 24, 24, 11);
-        mvprintw(mid_y_border + 1, center_x("KEYBINDS INFORMATION", mid_x_h), "KEYBINDS INFORMATION");
 
-        mvprintw(mid_y_border + 3, center_x("Move Up        : ", mid_x), "Move Up        : ");
+        // draw content
+        mvprintw(mid_y_border + 1, center_x("KEYBINDS INFORMATION", mid_x_h), "KEYBINDS INFORMATION"); // keybind text
+
+        mvprintw(mid_y_border + 3, center_x("Move Up        : ", mid_x), "Move Up        : "); // from here
         addch(ACS_UARROW);
         mvprintw(mid_y_border + 4, center_x("Move Down      : ", mid_x), "Move Down      : ");
         addch(ACS_DARROW);
@@ -822,10 +881,11 @@ int info()
         mvprintw(mid_y_border + 8, center_x("Pause Game      : [BACKSPACE]", mid_x + 6), "Pause Game     : [BACKSPACE]");
         mvprintw(mid_y_border + 9, center_x("Return Menu     : [ESC]      ", mid_x + 6), "Return Menu    : [ESC]      ");
         mvprintw(mid_y_border + 10, center_x("Start/Enter    : [ENTER]     ", mid_x + 6), "Start/Enter    : [ENTER]     ");
-        mvprintw(mid_y - 1, 3, "[ESC] to return");
+        mvprintw(mid_y - 1, 3, "[ESC] to return"); // to here is keybind information
 
         refresh();
 
+        // back to main menu
         int pressed = getch();
         if (pressed == 27)
         {
@@ -864,16 +924,18 @@ int main(int argc, char const *argv[])
         exit(1);
     }
 
+    // set up windows terimnal and initialize game
     set_console_char_size(118, 56);
     init();
 
+    // main menu logic
     while (1)
     {
         int action = menu();
 
         if (action == 0)
         {
-            break; // quit
+            break; // quit game
         }
 
         if (action == 1)
@@ -883,7 +945,7 @@ int main(int argc, char const *argv[])
 
         if (action == 2)
         {
-            info(); // info
+            info(); // setiings
         }
         if (action == 3)
         {
