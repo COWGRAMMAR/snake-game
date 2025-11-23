@@ -417,6 +417,10 @@ void set_console_char_size(short cols, short rows)
 // initialization function
 void init()
 {
+    // initialize extended ascii character
+    setlocale(LC_ALL, "");
+
+    // initialize random generator
     srand(time(NULL));
 
     // initialize window
@@ -427,7 +431,6 @@ void init()
     nodelay(win, TRUE);
     noecho();
     curs_set(0);
-    setlocale(LC_ALL, "");
 
     // initializze colors
     if (has_colors() == false)
@@ -739,17 +742,10 @@ int info()
     erase();
 
     int mid_x_border = (screen_width * 2 + 1) / 2;
-    int mid_x = (screen_width * 2 + 2) / 2;
+    int mid_y_border = screen_height - 16;
+    int mid_x_h = (screen_width * 2 + 2) / 2;
+    int mid_x = ((screen_width * 2 + 2) / 2) - 6;
     int mid_y = screen_height;
-    int mid_y_border = screen_height - 15;
-
-    const char *nama[5] = {
-        "RAFIF RAJENDRA",
-        "ABIYU ALDY",
-        "DEMAS MAHEZA",
-        "GIVEN ELYADA",
-        "SEBASTIAN BACH"};
-    int num_nama = 5;
 
     timeout(50);
 
@@ -760,15 +756,21 @@ int info()
         draw_border2(0, 0, screen_width, screen_height);
         attroff(COLOR_PAIR(3));
 
-        draw_border2(mid_y_border, mid_x_border - 24, 24, 10);
-        mvprintw(mid_y_border + 1, center_x("CREDIT", mid_x), "CREDIT");
+        print_art(screen_height / 2 - 13, screen_width / 2 - 14);
+        draw_border2(mid_y_border, mid_x_border - 24, 24, 11);
+        mvprintw(mid_y_border + 1, center_x("KEYBINDS INFORMATION", mid_x_h), "KEYBINDS INFORMATION");
 
-        for (int i = 0; i < num_nama; i++)
-        {
-            mvprintw(mid_y_border + 3 + i, center_x(nama[i], mid_x), "%s", nama[i]);
-        }
-
-        mvprintw(mid_y_border + 9, center_x("THANKS FOR PLAYING", mid_x), "THANKS FOR PLAYING");
+        mvprintw(mid_y_border + 3, center_x("Move Up        : ", mid_x), "Move Up        : ");
+        addch(ACS_UARROW);
+        mvprintw(mid_y_border + 4, center_x("Move Down      : ", mid_x), "Move Down      : ");
+        addch(ACS_DARROW);
+        mvprintw(mid_y_border + 5, center_x("Move Right     : ", mid_x), "Move Right     : ");
+        addch(ACS_RARROW);
+        mvprintw(mid_y_border + 6, center_x("Move Left      : ", mid_x), "Move Left      : ");
+        addch(ACS_LARROW);
+        mvprintw(mid_y_border + 8, center_x("Pause Game      : [BACKSPACE]", mid_x + 6), "Pause Game     : [BACKSPACE]");
+        mvprintw(mid_y_border + 9, center_x("Return Menu     : [ESC]      ", mid_x + 6), "Return Menu    : [ESC]      ");
+        mvprintw(mid_y_border + 10, center_x("Start/Enter    : [ENTER]     ", mid_x + 6), "Start/Enter    : [ENTER]     ");
         mvprintw(mid_y - 1, 3, "[ESC] to return");
 
         refresh();
