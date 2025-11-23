@@ -566,12 +566,12 @@ int center_x(const char *text, int w)
 int menu()
 {
     int menu_width = 20;
-    int menu_height = 5;
-    int start_y = screen_height / 2 + 5;
+    int menu_height = 6;
+    int start_y = screen_height / 2 + 4;
     int start_x = screen_width / 2 + 10;
 
-    const char *choices[3] = {"START GAME", "CREDIT", "QUIT"};
-    int num_choice = 3;
+    const char *choices[4] = {"START GAME", "SETTINGS", "CREDIT", "QUIT"};
+    int num_choice = 4;
     int highlight = 0;
     int input_menu;
     int extra_space = 0;
@@ -587,7 +587,7 @@ int menu()
         draw_border2(start_y, start_x, menu_width, menu_height);
         attroff(COLOR_PAIR(3));
 
-        mvprintw(screen_height, 1, "By : COW");
+        mvprintw(screen_height, 1, "By : D.R.A.G.S");
 
         // print menu choicesP
         for (int i = 0; i < num_choice; i++)
@@ -596,6 +596,7 @@ int menu()
             int text_len = strlen(choices[i]);
             int centered_x = (start_x + (menu_width - text_len) / 2) + 9;
 
+            // highlight
             if (i == highlight)
             {
                 attron(A_REVERSE);
@@ -623,11 +624,11 @@ int menu()
         case KEY_UP:
             highlight--;
             if (highlight < 0)
-                highlight = 2;
+                highlight = 3;
             break;
         case KEY_DOWN:
             highlight++;
-            if (highlight > 2)
+            if (highlight > 3)
                 highlight = 0;
             break;
         case 10: // Enter
@@ -637,12 +638,17 @@ int menu()
             }
             if (highlight == 1)
             {
-                return 2; // credit
+                return 2; // info
             }
             if (highlight == 2)
             {
+                return 3; // credit
+            }
+            if (highlight == 3)
+            {
                 return 0; // quit
             }
+
             break;
         default:
             break;
@@ -816,9 +822,7 @@ int main(int argc, char const *argv[])
     set_console_char_size(118, 56);
     init();
 
-    info();
-
-    /*while (1)
+    while (1)
     {
         int action = menu();
 
@@ -829,14 +833,18 @@ int main(int argc, char const *argv[])
 
         if (action == 1)
         {
-            GAME();
+            GAME(); // game
         }
 
         if (action == 2)
         {
-            credit();
+            info(); // info
         }
-    }*/
+        if (action == 3)
+        {
+            credit(); // credit
+        }
+    }
 
     quit_game();
     return 0;
