@@ -39,7 +39,9 @@ vec2 dir = {1, 0};
 vec2 segments[MAX_SEGMENTS + 1];
 
 // fruit
-vec2 fruit;
+#define MAX_FRUITS 20
+vec2 fruits[MAX_FRUITS];
+int fruit_count = 1;
 
 // pause
 int is_paused = 0;
@@ -49,7 +51,8 @@ int is_paused = 0;
 //==================== function prototypes ====================//
 bool collide(vec2 a, vec2 b);
 bool collide_snake_body(vec2 point);
-vec2 spawn_fruit();
+bool check_fruit_collision(int current_index);
+void spawn_fruits();
 void draw_border(int y, int x, int width, int height);
 void draw_border2(int y, int x, int width, int height);
 void print_art(int y, int x);
@@ -95,17 +98,34 @@ bool collide_snake_body(vec2 point)
     return false;
 }
 
-// fruit spawn
-vec2 spawn_fruit()
+bool check_fruit_collision(int current_index)
 {
-    // spawn a new fruit with 1 pixel padding from edges and not inside of the snake
-    vec2 fruit = {1 + rand() % (screen_width - 2), 1 + rand() % (screen_height - 2)};
-    while (collide(head, fruit) || collide_snake_body(fruit))
+    // check fruit collision at current index
+    for (int i = 0; i < fruit_count; i++)
     {
-        fruit.x = 1 + rand() % (screen_width - 2);
-        fruit.y = 1 + rand() % (screen_height - 2);
+        if (i != current_index && collide(fruits[current_index], fruits[i]))
+        {
+            return true;
+        }
     }
-    return fruit;
+    return false;
+}
+
+// fruit spawn
+void spawn_fruits()
+{
+    // spawn all fruit where is active
+    for (int i = 0; i < fruit_count; i++)
+    {
+        // seeking for valid position for next new fruit 
+        do
+        {
+            fruits[i].x = 1 + rand() % (screen_width - 2);
+            fruits[i].y = 1 + rand() % (screen_height - 2);
+        } while (collide(head, fruits[i]) ||
+                 collide_snake_body(fruits[i]) ||
+                 check_fruit_collision(i)); // check collison from another fruit
+    }
 }
 
 // update function
@@ -129,23 +149,47 @@ void update()
         game_over();
     }
 
-    // eating fruit
-    if (collide(head, fruit))
+    // update the number of fruit based on score
+    int new_fruit_count = 1 + (score / 10); // every 10 score, add 1 fruit
+    if (new_fruit_count > MAX_FRUITS)
     {
-        if (score + 1 <= MAX_SEGMENTS)
-        {
-            score += 1;
-            sprintf(score_str, "SCORE: %d", score);
-            if (score >= MAX_SEGMENTS)
-            {
-                is_running = false;
-                draw();
-                you_win();
-                return;
-            }
-        }
+        new_fruit_count = MAX_FRUITS;
+    }
 
-        fruit = spawn_fruit();
+    if (new_fruit_count != fruit_count)
+    {
+        fruit_count = new_fruit_count;
+        spawn_fruits(); // respawn all fruits with the new count
+    }
+
+    // Check eating fruits
+    for (int i = 0; i < fruit_count; i++)
+    {
+        if (collide(head, fruits[i]))
+        {
+            if (score + 1 <= MAX_SEGMENTS)
+            {
+                score += 1;
+                sprintf(score_str, "SCORE: %d", score);
+                if (score >= MAX_SEGMENTS)
+                {
+                    is_running = false;
+                    draw();
+                    you_win();
+                    return;
+                }
+
+                // respawn the eaten fruit
+                do
+                {
+                    fruits[i].x = 1 + rand() % (screen_width - 2);
+                    fruits[i].y = 1 + rand() % (screen_height - 2);
+                } while (collide(head, fruits[i]) ||
+                         collide_snake_body(fruits[i]) ||
+                         check_fruit_collision(i));
+            }
+            break; // only eat 1 fruit/frame
+        }
     }
 
     Sleep(FRAME_TIME);
@@ -229,7 +273,10 @@ void draw()
 
     // draw fruit
     attron(COLOR_PAIR(1));
-    mvaddch(fruit.y + 1, fruit.x * 2 + 1, '@');
+    for (int i = 0; i < fruit_count; i++)
+    {
+        mvaddch(fruits[i].y + 1, fruits[i].x * 2 + 1, '@');
+    }
     attroff(COLOR_PAIR(1));
 
     // draw snake
@@ -275,8 +322,7 @@ void print_art(int y, int x)
         " $$$$$$  |$$ $$ $$ |$$$$$$$$ |$$$$$  \\  $$$$$/    $$$$$$$/  $$$$$/    $$$$$$$$ |$$$$$  \\  ",
         "/  \\__$$ |$$ |$$$$ |$$ |  $$ |$$ |$$  \\ $$ |_____ $$ |      $$ |_____ $$ |  $$ |$$ |$$  \\ ",
         "$$    $$/ $$ | $$$ |$$ |  $$ |$$ | $$  |$$       |$$ |      $$       |$$ |  $$ |$$ | $$  |",
-        " $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/ $$$$$$$$/ $$/       $$$$$$$$/ $$/   $$/ $$/   $$/ "
-    };
+        " $$$$$$/  $$/   $$/ $$/   $$/ $$/   $$/ $$$$$$$$/ $$/       $$$$$$$$/ $$/   $$/ $$/   $$/ "};
 
     int lines = sizeof(art) / sizeof(art[0]);
 
@@ -331,7 +377,7 @@ void restart_game()
     is_paused = 0;
 
     // spawn new fruit
-    fruit = spawn_fruit();
+    spawn_fruits();
 
     segments[0] = head;
 }
@@ -452,8 +498,7 @@ void init()
     init_pair(10, COLOR_NAVYBLUE, -1);
     init_pair(11, COLOR_GREENGRASS, -1);
 
-    fruit.x = 1 + rand() % (screen_width - 2);
-    fruit.y = 1 + rand() % (screen_height - 2);
+    spawn_fruits();
 
     // update score string
     sprintf(score_str, "[   SCORE: %d   ]", score);
