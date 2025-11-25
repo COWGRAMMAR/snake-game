@@ -22,7 +22,8 @@ typedef struct
 } vec2;
 
 // struct leaderboard
-typedef struct {
+typedef struct
+{
     char nama[50];
     int score;
 } leaderboard;
@@ -220,21 +221,27 @@ void update()
     Sleep(FRAME_TIME);
 }
 
-// load leaderboard dan sorting
-void loadLeaderboard() {
+// load leaderboard and sorting
+void loadLeaderboard()
+{
     count = 0; // reset counter
 
     FILE *fptr = fopen("data.txt", "r");
-    if (!fptr) return;
+    if (!fptr)
+        return;
 
-    while (fscanf(fptr, " %49[^;];%d", board[count].nama, &board[count].score) == 2) {
+    while (fscanf(fptr, " %49[^;];%d", board[count].nama, &board[count].score) == 2)
+    {
         count++;
     }
 
     // sorting skor tertinggi ke bawah
-    for (int i = 0; i < count - 1; i++) {
-        for (int j = 0; j < count - i - 1; j++) {
-            if (board[j].score < board[j + 1].score) {
+    for (int i = 0; i < count - 1; i++)
+    {
+        for (int j = 0; j < count - i - 1; j++)
+        {
+            if (board[j].score < board[j + 1].score)
+            {
                 leaderboard temp = board[j];
                 board[j] = board[j + 1];
                 board[j + 1] = temp;
@@ -366,7 +373,7 @@ void pause()
 }
 
 // ascii art function
-void print_art(int y, int x)
+void print_art(int y, int x) // snake peak logo
 {
     // asci art is stored in an array
     const char *art[] = {
@@ -389,77 +396,27 @@ void print_art(int y, int x)
     }
 }
 
-void print_inputName(int y, int x)
+void print_inputName(int y, int x) // your name logo
 {
-                                                                                      
+
     const char *insert[] = {
         "    ____                     __    __  __                    _   __                   ",
         "   /  _/___  ________  _____/ /_   \\ \\/ /___  __  _______   / | / /___ _____ ___  ___ ",
         "   / // __ \\/ ___/ _ \\/ ___/ __/    \\  / __ \\/ / / / ___/  /  |/ / __ `/ __ `__ \\/ _ \\",
         " _/ // / / (__  )  __/ /  / /_      / / /_/ / /_/ / /     / /|  / /_/ / / / / / /  __/",
-        "/___/_/ /_/____/\\___/_/   \\__/     /_/\\____/\\__,_/_/     /_/ |_|\\__,_/_/ /_/ /_/\\___/ "
-    };
-                                                                                                   
+        "/___/_/ /_/____/\\___/_/   \\__/     /_/\\____/\\__,_/_/     /_/ |_|\\__,_/_/ /_/ /_/\\___/ "};
+
     int lines = sizeof(insert) / sizeof(insert[0]);
 
-    for (int i = 0; i < lines; i++) {
+    // print ascii art
+    for (int i = 0; i < lines; i++)
+    {
         mvprintw(y + i, x, "%s", insert[i]);
     }
 }
 
-void printLeaderboard(int y, int x) {
-    nodelay(win, FALSE);
-    clear();
-    refresh();
-
-    WINDOW *printBoard = newwin(26, 50, y, x); 
-    // Tinggi 25 baris, lebar 50 kolom, posisi y=1, x=1 (biar gak mepet)
-
-    timeout(50);
-
-    while(1) 
-    {
-        char title[] = "[ HALL OF FAME ]";
-        int center = (50 - strlen(title)) / 2;
-
-        // gambar table, title dan outer line
-        attron(COLOR_PAIR(3));
-        python(2, 5);
-        python(2, 74);
-        draw_border2(0, 0, screen_width, screen_height);     
-        attroff(COLOR_PAIR(3));
-
-        wattron(printBoard, COLOR_PAIR(3));
-        box(printBoard, 0, 0);
-        mvwhline(printBoard, 2, 1, ACS_HLINE, 48);
-        mvwprintw(printBoard, 0, center, "%s", title);
-        wattroff(printBoard, COLOR_PAIR(3));
-
-        mvwprintw(printBoard, 24, 2, "Press [ESC] to return");
-
-        // Header kolom
-        mvwprintw(printBoard, 1, 2, "RANK   NAME                              SCORE");
-
-        // Tampilkan max 20 data
-        for (int i = 0; i < count && i < 20; i++) {
-            mvwprintw(printBoard, i + 3, 2, "%2d.    %-20s              %5d",i + 1, board[i].nama, board[i].score);
-        }
-
-        //mvwprintw(printBoard, 24, 2, "Tekan apa saja untuk kembali...");
-        wrefresh(printBoard);
-
-        int pressed = getch();
-        if (pressed == 27) {
-            delwin(printBoard);
-            nodelay(win, TRUE);
-            break;
-        }
-
-    }
-    
-}
-
-void python(int y, int x) {
+void python(int y, int x) // python logo
+{
     const char *snake_art[] = {
         "             ..~~~+=====...             ",
         "          .?77777777777777$.            ",
@@ -486,8 +443,7 @@ void python(int y, int x) {
         "         .==========+++.  .++           ",
         "          ,=======++++++,,++,           ",
         "          ..=====+++++++++=.            ",
-        "                ..~+=...                "
-    };
+        "                ..~+=...                "};
 
     int lines = sizeof(snake_art) / sizeof(snake_art[0]);
 
@@ -500,10 +456,11 @@ void python(int y, int x) {
 
 //============================== Draw Function ==============================//
 
-//============================== Fature For Quit, Paused, Restart, Game over, win, settings Function ==============================//
+//============================== Feature For Quit, Paused, Restart, Game over, win, settings, leaderboard Function ==============================//
 
 // Write and Append leaderboard
-void writeLeaderboard(int y, int x) {
+void writeLeaderboard(int y, int x)
+{
     nodelay(win, FALSE);
 
     clear();
@@ -512,16 +469,18 @@ void writeLeaderboard(int y, int x) {
     char name[50];
     int rewriteIndex = -1;
 
-    // Window untuk input
-    WINDOW *inputBox = newwin(3, 40, y, x); // tinggi 7, lebar 40, posisi sesuai argumen
+    // Window for input
+    WINDOW *inputBox = newwin(3, 40, y, x); // Height 7, width 40, position according to arguments
     box(inputBox, 0, 0);
 
+    // draw border for save box
     attron(COLOR_PAIR(3));
-    draw_border2(0, 0, screen_width, screen_height);     
+    draw_border2(0, 0, screen_width, screen_height);
     attroff(COLOR_PAIR(3));
-    print_inputName(9, screen_width/2 - 12);
+    print_inputName(9, screen_width / 2 - 12);
     refresh();
 
+    // draw input
     mvwprintw(inputBox, 1, 2, "Name : ");
     wrefresh(inputBox);
 
@@ -533,27 +492,34 @@ void writeLeaderboard(int y, int x) {
     clear();
     refresh();
 
-    // cek apakah nama sudah ada
-    for (int i = 0; i < count; i++) {
-        if (strcmp(board[i].nama, name) == 0) {
+    // Check if the name already exists
+    for (int i = 0; i < count; i++)
+    {
+        if (strcmp(board[i].nama, name) == 0)
+        {
             rewriteIndex = i;
             break;
         }
     }
 
-    // jika rewrite → kosongkan dulu file
-    if (rewriteIndex != -1) {
+    // if rewrite → clear the file first
+    if (rewriteIndex != -1)
+    {
         FILE *clearf = fopen("data.txt", "w");
         fclose(clearf);
     }
 
     FILE *fptr = fopen("data.txt", "a");
 
-    // tulis data
-    if (rewriteIndex == -1) {
+    // write the data
+    if (rewriteIndex == -1)
+    {
         fprintf(fptr, "%s;%d\n", name, score);
-    } else {
-        for (int i = 0; i < count; i++) {
+    }
+    else
+    {
+        for (int i = 0; i < count; i++)
+        {
             if (i == rewriteIndex)
                 fprintf(fptr, "%s;%d\n", name, score);
             else
@@ -638,7 +604,7 @@ void game_over()
         if (event == 10)
         {
             loadLeaderboard();
-            writeLeaderboard(screen_height/2 + 2, screen_width - 20);
+            writeLeaderboard(screen_height / 2 + 2, screen_width - 20);
             return;
         }
 
@@ -672,7 +638,7 @@ void you_win()
     }
 }
 
-//============================== Fature For Quit, Paused, Restart, Game over, win, settings Function ==============================//
+//============================== Feature For Quit, Paused, Restart, Game over, win, settings, leaderboard Function ==============================//
 
 //============================== Setup Terminal Function ==============================//
 
@@ -857,9 +823,9 @@ int input()
     {
         is_paused = !is_paused;
     }
-    
+
     // input for s (save)
-    else if (pressed == 's')
+    else if (pressed == 's' || pressed == 'S')
     {
         return 10;
     }
@@ -899,7 +865,7 @@ int menu()
 
         // draw main menu box
         attron(COLOR_PAIR(3));
-        draw_border2(0, 0, screen_width, screen_height);         // outer box
+        draw_border2(0, 0, screen_width, screen_height);             // outer box
         draw_border2(start_y, start_x, menu_width, menu_height + 1); // inner box
         attroff(COLOR_PAIR(3));
 
@@ -1125,6 +1091,61 @@ int info()
     }
 }
 
+// leaderboard function
+void printLeaderboard(int y, int x)
+{
+    nodelay(win, FALSE);
+    clear();
+    refresh();
+
+    WINDOW *printBoard = newwin(26, 50, y, x);
+    // Height 26 rows, width 50 columns, position y=1, x=1 (so it's not too cramped)
+
+    timeout(50);
+
+    while (1)
+    {
+        char title[] = "[ HALL OF FAME ]";
+        int center = (50 - strlen(title)) / 2;
+
+        // draw table, title dan outer line
+        attron(COLOR_PAIR(3));
+        python(2, 5);
+        python(2, 74);
+        draw_border2(0, 0, screen_width, screen_height);
+        attroff(COLOR_PAIR(3));
+
+        // draw leaderboard box and content
+        wattron(printBoard, COLOR_PAIR(3));
+        box(printBoard, 0, 0);
+        mvwhline(printBoard, 2, 1, ACS_HLINE, 48);
+        mvwprintw(printBoard, 0, center, "%s", title);
+        wattroff(printBoard, COLOR_PAIR(3));
+
+        mvwprintw(printBoard, 24, 2, "Press [ESC] to return");
+
+       // Header column
+        mvwprintw(printBoard, 1, 2, "RANK   NAME                              SCORE");
+
+        // Display a maximum of 20 data
+        for (int i = 0; i < count && i < 20; i++)
+        {
+            mvwprintw(printBoard, i + 3, 2, "%2d.    %-20s              %5d", i + 1, board[i].nama, board[i].score);
+        }
+
+        // mvwprintw(printBoard, 24, 2, "Tekan apa saja untuk kembali...");
+        wrefresh(printBoard);
+
+        int pressed = getch();
+        if (pressed == 27)
+        {
+            delwin(printBoard);
+            nodelay(win, TRUE);
+            break;
+        }
+    }
+}
+
 //============================== User Interface Function ==============================//
 
 //============================== main Function ==============================//
@@ -1156,7 +1177,7 @@ int main(int argc, char const *argv[])
     }
 
     // set up windows terimnal and initialize game
-    set_console_char_size(120, 30);
+    set_console_char_size(118, 56);
     init();
 
     // main menu logic
@@ -1181,13 +1202,13 @@ int main(int argc, char const *argv[])
         if (action == 3)
         {
             loadLeaderboard();
-            printLeaderboard(screen_height/2 - 12, screen_width - 25);
+            printLeaderboard(screen_height / 2 - 12, screen_width - 25); // leaderboard
         }
         if (action == 4)
         {
             credit(); // credit
         }
-    } 
+    }
 
     quit_game();
     return 0;
