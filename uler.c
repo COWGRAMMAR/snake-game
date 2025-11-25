@@ -5,7 +5,7 @@
 #include <time.h>
 #include <locale.h>
 
-#define MAX_SEGMENTS 1482
+#define MAX_SEGMENTS 1 // default 1482
 #define FRAME_TIME 220
 #define COLOR_NAVYBLUE 10
 #define COLOR_GREENGRASS 11
@@ -634,6 +634,13 @@ void you_win()
             return;
         }
 
+        if (event == 10)
+        {
+            loadLeaderboard();
+            writeLeaderboard(screen_height / 2 + 2, screen_width - 20);
+            return;
+        }
+
         Sleep(FRAME_TIME);
     }
 }
@@ -1124,7 +1131,7 @@ void printLeaderboard(int y, int x)
 
         mvwprintw(printBoard, 24, 2, "Press [ESC] to return");
 
-       // Header column
+        // Header column
         mvwprintw(printBoard, 1, 2, "RANK   NAME                              SCORE");
 
         // Display a maximum of 20 data
