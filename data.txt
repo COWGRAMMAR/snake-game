@@ -1,11 +1,8 @@
+pertamina;1000
 pt timah;300
 blbi;138
 duta palma;78
 pt tppi;37
-sam;20
-Namaewa Udin;20
-player;10
-pertamina;0
-bayu;1
-test;0
-udin;0
+Biyu;5
+player;2
+player2;0

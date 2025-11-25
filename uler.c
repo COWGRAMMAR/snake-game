@@ -70,6 +70,10 @@ void spawn_fruits();
 void draw_border(int y, int x, int width, int height);
 void draw_border2(int y, int x, int width, int height);
 void print_art(int y, int x);
+void printLeaderboard(int y, int x);
+void python(int y, int x);
+void writeLeaderboard(int y, int x);
+void loadLeaderboard();
 int center_x(const char *text, int w);
 void quit_game();
 void restart_game();
@@ -385,6 +389,24 @@ void print_art(int y, int x)
     }
 }
 
+void print_inputName(int y, int x)
+{
+                                                                                      
+    const char *insert[] = {
+        "    ____                     __    __  __                    _   __                   ",
+        "   /  _/___  ________  _____/ /_   \\ \\/ /___  __  _______   / | / /___ _____ ___  ___ ",
+        "   / // __ \\/ ___/ _ \\/ ___/ __/    \\  / __ \\/ / / / ___/  /  |/ / __ `/ __ `__ \\/ _ \\",
+        " _/ // / / (__  )  __/ /  / /_      / / /_/ / /_/ / /     / /|  / /_/ / / / / / /  __/",
+        "/___/_/ /_/____/\\___/_/   \\__/     /_/\\____/\\__,_/_/     /_/ |_|\\__,_/_/ /_/ /_/\\___/ "
+    };
+                                                                                                   
+    int lines = sizeof(insert) / sizeof(insert[0]);
+
+    for (int i = 0; i < lines; i++) {
+        mvprintw(y + i, x, "%s", insert[i]);
+    }
+}
+
 void printLeaderboard(int y, int x) {
     nodelay(win, FALSE);
     clear();
@@ -402,6 +424,8 @@ void printLeaderboard(int y, int x) {
 
         // gambar table, title dan outer line
         attron(COLOR_PAIR(3));
+        python(2, 5);
+        python(2, 74);
         draw_border2(0, 0, screen_width, screen_height);     
         attroff(COLOR_PAIR(3));
 
@@ -411,7 +435,7 @@ void printLeaderboard(int y, int x) {
         mvwprintw(printBoard, 0, center, "%s", title);
         wattroff(printBoard, COLOR_PAIR(3));
 
-        mvwprintw(printBoard, 24, 1, "Press [ESC] to quit");
+        mvwprintw(printBoard, 24, 2, "Press [ESC] to return");
 
         // Header kolom
         mvwprintw(printBoard, 1, 2, "RANK   NAME                              SCORE");
@@ -435,6 +459,50 @@ void printLeaderboard(int y, int x) {
     
 }
 
+void python(int y, int x) {
+    const char *snake_art[] = {
+        "             ..~~~+=====...             ",
+        "          .?77777777777777$.            ",
+        "          777..777777777777$+           ",
+        "         .77    7777777777$$$           ",
+        "         .777 .7777777777$$$$           ",
+        "         .7777777777777$$$$$$           ",
+        "         ..........:77$$$$$$$           ",
+        "  .77777777777777777$$$$$$$$$.=======.  ",
+        " 777777777777777777$$$$$$$$$$.========  ",
+        "7777777777777777$$$$$$$$$$$$$.========= ",
+        "77777777777777$$$$$$$$$$$$$$$.========= ",
+        "777777777777$$$$$$$$$$$$$$$$ :========+.",
+        "77777777777$$$$$$$$$$$$$$+..=========++~",
+        "777777777$$..~=====================+++++",
+        "77777777$~.~~~~=~=================+++++.",
+        "777777$$$.~~~===================+++++++.",
+        "77777$$$$.~~==================++++++++: ",
+        " 7$$$$$$$.==================++++++++++. ",
+        " .,$$$$$$.================++++++++++~.  ",
+        "         .=========~.........           ",
+        "         .=============++++++           ",
+        "         .===========+++..+++           ",
+        "         .==========+++.  .++           ",
+        "          ,=======++++++,,++,           ",
+        "          ..=====+++++++++=.            ",
+        "                ..~+=...                "
+    };
+
+    int lines = sizeof(snake_art) / sizeof(snake_art[0]);
+
+    // print ascii art
+    for (int i = 0; i < lines; i++)
+    {
+        mvprintw(y + i, x, "%s", snake_art[i]);
+    }
+}
+
+//============================== Draw Function ==============================//
+
+//============================== Fature For Quit, Paused, Restart, Game over, win, settings Function ==============================//
+
+// Write and Append leaderboard
 void writeLeaderboard(int y, int x) {
     nodelay(win, FALSE);
 
@@ -444,13 +512,15 @@ void writeLeaderboard(int y, int x) {
     char name[50];
     int rewriteIndex = -1;
 
-    attron(COLOR_PAIR(3));
-    draw_border2(0, 0, screen_width, screen_height);     
-    attroff(COLOR_PAIR(3));
-
     // Window untuk input
     WINDOW *inputBox = newwin(3, 40, y, x); // tinggi 7, lebar 40, posisi sesuai argumen
     box(inputBox, 0, 0);
+
+    attron(COLOR_PAIR(3));
+    draw_border2(0, 0, screen_width, screen_height);     
+    attroff(COLOR_PAIR(3));
+    print_inputName(9, screen_width/2 - 12);
+    refresh();
 
     mvwprintw(inputBox, 1, 2, "Name : ");
     wrefresh(inputBox);
@@ -495,10 +565,6 @@ void writeLeaderboard(int y, int x) {
 
     nodelay(win, TRUE);
 }
-
-//============================== Draw Function ==============================//
-
-//============================== Fature For Quit, Paused, Restart, Game over, win, settings Function ==============================//
 
 // quit game function
 void quit_game()
@@ -572,7 +638,7 @@ void game_over()
         if (event == 10)
         {
             loadLeaderboard();
-            writeLeaderboard(screen_height/2, screen_width - 20);
+            writeLeaderboard(screen_height/2 + 2, screen_width - 20);
             return;
         }
 
@@ -1090,7 +1156,7 @@ int main(int argc, char const *argv[])
     }
 
     // set up windows terimnal and initialize game
-    set_console_char_size(118, 56);
+    set_console_char_size(120, 30);
     init();
 
     // main menu logic
