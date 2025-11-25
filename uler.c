@@ -5,7 +5,6 @@
 #include <time.h>
 #include <locale.h>
 
-
 #define MAX_SEGMENTS 1482 // default 1482
 #define FRAME_TIME 220
 
@@ -61,7 +60,7 @@ vec2 dir = {1, 0};
 vec2 segments[MAX_SEGMENTS + 1];
 
 // fruit
-#define MAX_FRUITS 20
+#define MAX_FRUITS 40
 vec2 fruits[MAX_FRUITS];
 int fruit_count = 1;
 
@@ -170,7 +169,7 @@ void update()
     }
 
     // update the number of fruit based on score
-    int new_fruit_count = 1 + (score / 10); // every 10 score, add 1 fruit
+    int new_fruit_count = 1 + (score / 5); // every 10 score, add 1 fruit
     if (new_fruit_count > MAX_FRUITS)
     {
         new_fruit_count = MAX_FRUITS;
