@@ -455,7 +455,7 @@ void you_win()
 
 //============================== Setup Terminal Function ==============================//
 
-// lock console
+// lock console function
 void set_console_char_size(short cols, short rows)
 {
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
