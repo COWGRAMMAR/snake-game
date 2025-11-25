@@ -9,6 +9,7 @@
 #define FRAME_TIME 220
 #define COLOR_NAVYBLUE 10
 #define COLOR_GREENGRASS 11
+#define MAX_DATA 100
 
 //==================== structs & vars ====================//
 
@@ -20,8 +21,19 @@ typedef struct
 
 } vec2;
 
+// struct leaderboard
+typedef struct {
+    char nama[50];
+    int score;
+} leaderboard;
+
+leaderboard board[MAX_DATA];
+
+// banyak data leaderboard
+int count;
+
 // score
-int score = 0;
+int score = 20;
 char score_str[16];
 
 // game state
@@ -204,6 +216,31 @@ void update()
     Sleep(FRAME_TIME);
 }
 
+// load leaderboard dan sorting
+void loadLeaderboard() {
+    count = 0; // reset counter
+
+    FILE *fptr = fopen("data.txt", "r");
+    if (!fptr) return;
+
+    while (fscanf(fptr, " %49[^;];%d", board[count].nama, &board[count].score) == 2) {
+        count++;
+    }
+
+    // sorting skor tertinggi ke bawah
+    for (int i = 0; i < count - 1; i++) {
+        for (int j = 0; j < count - i - 1; j++) {
+            if (board[j].score < board[j + 1].score) {
+                leaderboard temp = board[j];
+                board[j] = board[j + 1];
+                board[j + 1] = temp;
+            }
+        }
+    }
+
+    fclose(fptr);
+}
+
 //============================== Game Logic Function ==============================//
 
 //============================== Draw Function ==============================//
@@ -348,6 +385,117 @@ void print_art(int y, int x)
     }
 }
 
+void printLeaderboard(int y, int x) {
+    nodelay(win, FALSE);
+    clear();
+    refresh();
+
+    WINDOW *printBoard = newwin(26, 50, y, x); 
+    // Tinggi 25 baris, lebar 50 kolom, posisi y=1, x=1 (biar gak mepet)
+
+    timeout(50);
+
+    while(1) 
+    {
+        char title[] = "[ HALL OF FAME ]";
+        int center = (50 - strlen(title)) / 2;
+
+        // gambar table, title dan outer line
+        attron(COLOR_PAIR(3));
+        draw_border2(0, 0, screen_width, screen_height);     
+        attroff(COLOR_PAIR(3));
+
+        wattron(printBoard, COLOR_PAIR(3));
+        box(printBoard, 0, 0);
+        mvwhline(printBoard, 2, 1, ACS_HLINE, 48);
+        mvwprintw(printBoard, 0, center, "%s", title);
+        wattroff(printBoard, COLOR_PAIR(3));
+
+        mvwprintw(printBoard, 24, 1, "Press [ESC] to quit");
+
+        // Header kolom
+        mvwprintw(printBoard, 1, 2, "RANK   NAME                              SCORE");
+
+        // Tampilkan max 20 data
+        for (int i = 0; i < count && i < 20; i++) {
+            mvwprintw(printBoard, i + 3, 2, "%2d.    %-20s              %5d",i + 1, board[i].nama, board[i].score);
+        }
+
+        //mvwprintw(printBoard, 24, 2, "Tekan apa saja untuk kembali...");
+        wrefresh(printBoard);
+
+        int pressed = getch();
+        if (pressed == 27) {
+            delwin(printBoard);
+            nodelay(win, TRUE);
+            break;
+        }
+
+    }
+    
+}
+
+void writeLeaderboard(int y, int x) {
+    nodelay(win, FALSE);
+
+    clear();
+    refresh();
+
+    char name[50];
+    int rewriteIndex = -1;
+
+    attron(COLOR_PAIR(3));
+    draw_border2(0, 0, screen_width, screen_height);     
+    attroff(COLOR_PAIR(3));
+
+    // Window untuk input
+    WINDOW *inputBox = newwin(3, 40, y, x); // tinggi 7, lebar 40, posisi sesuai argumen
+    box(inputBox, 0, 0);
+
+    mvwprintw(inputBox, 1, 2, "Name : ");
+    wrefresh(inputBox);
+
+    echo();
+    mvwgetnstr(inputBox, 1, 9, name, sizeof(name) - 1);
+    noecho();
+
+    delwin(inputBox);
+    clear();
+    refresh();
+
+    // cek apakah nama sudah ada
+    for (int i = 0; i < count; i++) {
+        if (strcmp(board[i].nama, name) == 0) {
+            rewriteIndex = i;
+            break;
+        }
+    }
+
+    // jika rewrite → kosongkan dulu file
+    if (rewriteIndex != -1) {
+        FILE *clearf = fopen("data.txt", "w");
+        fclose(clearf);
+    }
+
+    FILE *fptr = fopen("data.txt", "a");
+
+    // tulis data
+    if (rewriteIndex == -1) {
+        fprintf(fptr, "%s;%d\n", name, score);
+    } else {
+        for (int i = 0; i < count; i++) {
+            if (i == rewriteIndex)
+                fprintf(fptr, "%s;%d\n", name, score);
+            else
+                fprintf(fptr, "%s;%d\n", board[i].nama, board[i].score);
+        }
+    }
+
+    fclose(fptr);
+
+    nodelay(win, TRUE);
+}
+
 //============================== Draw Function ==============================//
 
 //============================== Fature For Quit, Paused, Restart, Game over, win, settings Function ==============================//
@@ -408,16 +556,23 @@ void game_over()
 
         // draw game over menu box
         attron(COLOR_PAIR(3));
-        draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
+        draw_border(screen_height / 2 - 1, screen_width - 24, 24, 2);
         attroff(COLOR_PAIR(3));
 
         // draw game over menu content
         mvaddstr(screen_height / 2, screen_width - 4, "Game  Over");
-        mvaddstr(screen_height / 2 + 1, screen_width - 15, "[SPACE] to restart,[ESC] to quit");
+        mvaddstr(screen_height / 2 + 1, screen_width - 22, "[SPACE] to restart, [ESC] to quit, [S] to save");
 
         // return to menu
         if (event == 1)
         {
+            return;
+        }
+
+        if (event == 10)
+        {
+            loadLeaderboard();
+            writeLeaderboard(screen_height/2, screen_width - 20);
             return;
         }
 
@@ -636,6 +791,12 @@ int input()
     {
         is_paused = !is_paused;
     }
+    
+    // input for s (save)
+    else if (pressed == 's')
+    {
+        return 10;
+    }
 
     return 0;
 }
@@ -658,8 +819,8 @@ int menu()
     int start_y = screen_height / 2 + 4;
     int start_x = screen_width / 2 + 10;
 
-    const char *choices[4] = {"START GAME", "SETTINGS", "CREDIT", "QUIT"};
-    int num_choice = 4;
+    const char *choices[5] = {"START GAME", "SETTINGS", "HALL OF FAME", "CREDIT", "QUIT"};
+    int num_choice = 5;
     int highlight = 0;
     int input_menu;
     int extra_space = 0;
@@ -673,7 +834,7 @@ int menu()
         // draw main menu box
         attron(COLOR_PAIR(3));
         draw_border2(0, 0, screen_width, screen_height);         // outer box
-        draw_border2(start_y, start_x, menu_width, menu_height); // inner box
+        draw_border2(start_y, start_x, menu_width, menu_height + 1); // inner box
         attroff(COLOR_PAIR(3));
 
         // draw creator name
@@ -715,11 +876,11 @@ int menu()
         case KEY_UP:
             highlight--;
             if (highlight < 0)
-                highlight = 3;
+                highlight = 4;
             break;
         case KEY_DOWN:
             highlight++;
-            if (highlight > 3)
+            if (highlight >= 5)
                 highlight = 0;
             break;
         case 10: // Enter
@@ -733,9 +894,13 @@ int menu()
             }
             if (highlight == 2)
             {
-                return 3; // credit
+                return 3; // HALL OF FAME
             }
             if (highlight == 3)
+            {
+                return 4; // credit
+            }
+            if (highlight == 4)
             {
                 return 0; // quit
             }
@@ -949,9 +1114,14 @@ int main(int argc, char const *argv[])
         }
         if (action == 3)
         {
+            loadLeaderboard();
+            printLeaderboard(screen_height/2 - 12, screen_width - 25);
+        }
+        if (action == 4)
+        {
             credit(); // credit
         }
-    }
+    } 
 
     quit_game();
     return 0;
