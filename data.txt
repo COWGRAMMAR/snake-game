@@ -6,3 +6,4 @@ pt tppi;37
 Biyu;5
 player;2
 player2;0
+ahmah bahrudin simanjuntuak;0
