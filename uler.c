@@ -5,7 +5,8 @@
 #include <time.h>
 #include <locale.h>
 
-#define MAX_SEGMENTS 1 // default 1482
+
+#define MAX_SEGMENTS 1482 // default 1482
 #define FRAME_TIME 220
 #define COLOR_NAVYBLUE 10
 #define COLOR_GREENGRASS 11
@@ -621,12 +622,12 @@ void you_win()
 
         // draw you win menu box
         attron(COLOR_PAIR(3));
-        draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
+        draw_border(screen_height / 2 - 1, screen_width - 24, 24, 2);
         attroff(COLOR_PAIR(3));
 
         // draw you win menu content
         mvaddstr(screen_height / 2, screen_width - 3, "YOU  WIN");
-        mvaddstr(screen_height / 2 + 1, screen_width - 16, "[SPACE] to restart, [ESC] to quit");
+        mvaddstr(screen_height / 2 + 1, screen_width - 22, "[SPACE] to restart, [ESC] to quit, [S] to save");
 
         // return to menu
         if (event == 1)
@@ -1065,7 +1066,7 @@ int info()
         // draw settings menu box
         attron(COLOR_PAIR(3));
         draw_border2(0, 0, screen_width, screen_height);       // outer box
-        draw_border2(mid_y_border, mid_x_border - 24, 24, 11); // inner box
+        draw_border2(mid_y_border, mid_x_border - 24, 24, 12); // inner box
         attroff(COLOR_PAIR(3));
 
         // draw ascii art
@@ -1085,6 +1086,7 @@ int info()
         mvprintw(mid_y_border + 8, center_x("Pause Game      : [BACKSPACE]", mid_x + 6), "Pause Game     : [BACKSPACE]");
         mvprintw(mid_y_border + 9, center_x("Return Menu     : [ESC]      ", mid_x + 6), "Return Menu    : [ESC]      ");
         mvprintw(mid_y_border + 10, center_x("Start/Enter    : [ENTER]     ", mid_x + 6), "Start/Enter    : [ENTER]     ");
+        mvprintw(mid_y_border + 11, center_x("Save Data      : [S]         ", mid_x + 6), "Save Data      : [S]         ");
         mvprintw(mid_y - 1, 3, "[ESC] to return"); // to here is keybind information
 
         refresh();
