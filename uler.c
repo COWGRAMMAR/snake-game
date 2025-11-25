@@ -9,6 +9,11 @@
 #define FRAME_TIME 220
 #define COLOR_NAVYBLUE 10
 #define COLOR_GREENGRASS 11
+#define COLOR_NEONGREEN 12
+#define COLOR_WHITE 13
+#define COLOR_MUTEDBLUE 14
+#define COLOR_BRIGHTPEACH 15
+#define COLOR_DARKBLUE 16
 
 //==================== structs & vars ====================//
 
@@ -517,6 +522,11 @@ void init()
     // custom colors list
     init_color(COLOR_GREENGRASS, 78, 639, 114);
     init_color(COLOR_NAVYBLUE, 27, 12, 369);
+    init_color(COLOR_NEONGREEN, 312, 976, 480);
+    init_color(COLOR_WHITE, 968, 968, 945);
+    init_color(COLOR_MUTEDBLUE, 382, 445, 640);
+    init_color(COLOR_BRIGHTPEACH, 996, 718, 421);
+    init_color(COLOR_DARKBLUE, 156, 164, 210);
 
     // list if colors to be used in function
     can_change_color();
@@ -526,6 +536,11 @@ void init()
     init_pair(3, COLOR_YELLOW, -1);
     init_pair(10, COLOR_NAVYBLUE, -1);
     init_pair(11, COLOR_GREENGRASS, -1);
+    init_pair(12, COLOR_NEONGREEN, -1);
+    init_pair(13, COLOR_WHITE, -1);
+    init_pair(14, COLOR_MUTEDBLUE, -1);
+    init_pair(15, COLOR_BRIGHTPEACH, -1);
+    init_pair(16, COLOR_DARKBLUE, -1);
 
     // spawn fruit for the first time
     spawn_fruits();
