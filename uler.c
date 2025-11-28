@@ -15,6 +15,9 @@
 #define MY_COLOR_DARKBLUE 105
 #define MY_COLOR_ORANGE 106
 #define MY_COLOR_SKYBLUE 107
+#define MY_COLOR_YELLOW 108
+#define MY_COLOR_GOLD 109
+#define MY_COLOR_BRONZE 110
 
 #define MAX_DATA 100
 
@@ -488,13 +491,20 @@ void writeLeaderboard(int y, int x)
 
     // Window for input
     WINDOW *inputBox = newwin(3, 40, y, x); // Height 7, width 40, position according to arguments
+
+    wattron(inputBox, COLOR_PAIR(3));
     box(inputBox, 0, 0);
+    wattroff(inputBox, COLOR_PAIR(3));
 
     // draw border for save box
-    attron(COLOR_PAIR(3));
+    attron(COLOR_PAIR(16));
     draw_border2(0, 0, screen_width, screen_height);
-    attroff(COLOR_PAIR(3));
+    attroff(COLOR_PAIR(16));
+    
+    attron(COLOR_PAIR(1));
     print_inputName(9, screen_width / 2 - 12);
+    attroff(COLOR_PAIR(1));
+    
     refresh();
 
     // draw input
@@ -611,7 +621,7 @@ void game_over()
         // draw game over menu content
         attron(COLOR_PAIR(4));
         mvaddstr(screen_height / 2, screen_width - 4, "Game  Over");
-        mvprintw(screen_height / 2 + 1, screen_width - 15, "");
+        mvprintw(screen_height / 2 + 1, screen_width - 21,"");
         attroff(COLOR_PAIR(4));
 
         attron(COLOR_PAIR(12));
@@ -627,7 +637,15 @@ void game_over()
         attroff(COLOR_PAIR(16));
 
         attron(COLOR_PAIR(4));
-        printw(" to quit");
+        printw(" to quit,");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(5));
+        printw("[S]");
+        attroff(COLOR_PAIR(5));
+
+        attron(COLOR_PAIR(4));
+        printw(" to save");
         attroff(COLOR_PAIR(4));
 
         // return to menu
@@ -655,14 +673,14 @@ void you_win()
         int event = input();
 
         // draw you win menu box
-        attron(COLOR_PAIR(11));
-        draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
-        attroff(COLOR_PAIR(11));
+        attron(COLOR_PAIR(17));
+        draw_border(screen_height / 2 - 1, screen_width - 24, 24, 2);
+        attroff(COLOR_PAIR(17));
 
         // draw you win menu content
         attron(COLOR_PAIR(4));
         mvaddstr(screen_height / 2, screen_width - 3, "YOU  WIN");
-        mvprintw(screen_height / 2 + 1, screen_width - 16, "");
+        mvprintw(screen_height / 2 + 1, screen_width - 21, "");
         attroff(COLOR_PAIR(4));
 
         attron(COLOR_PAIR(12));
@@ -678,7 +696,15 @@ void you_win()
         attroff(COLOR_PAIR(16));
 
         attron(COLOR_PAIR(4));
-        printw(" to quit");
+        printw(" to quit,");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(5));
+        printw("[S]");
+        attroff(COLOR_PAIR(5));
+
+        attron(COLOR_PAIR(4));
+        printw(" to save");
         attroff(COLOR_PAIR(4));
 
         // return to menu
@@ -770,6 +796,9 @@ void init()
     init_color(MY_COLOR_DARKBLUE, 157, 165, 212);
     init_color(MY_COLOR_ORANGE, 1000, 647, 0);
     init_color(MY_COLOR_SKYBLUE, 5, 851, 917);
+    init_color(MY_COLOR_YELLOW, 996, 996, 0);
+    init_color(MY_COLOR_GOLD, 996, 839, 0);
+    init_color(MY_COLOR_BRONZE, 800, 496, 195);
 
     // list if colors to be used in function
     can_change_color();
@@ -778,6 +807,7 @@ void init()
     init_pair(2, COLOR_GREEN, -1);
     init_pair(3, COLOR_YELLOW, -1);
     init_pair(4, COLOR_WHITE, -1);
+    init_pair(5, COLOR_MAGENTA, -1);
 
     init_pair(10, MY_COLOR_NAVYBLUE, -1);
     init_pair(11, MY_COLOR_GREENGRASS, -1);
@@ -787,6 +817,10 @@ void init()
     init_pair(15, MY_COLOR_DARKBLUE, -1);
     init_pair(16, MY_COLOR_ORANGE, -1);
     init_pair(17, MY_COLOR_SKYBLUE, -1);
+    init_pair(18, MY_COLOR_YELLOW, -1);
+    init_pair(19, MY_COLOR_GOLD, -1);
+    init_pair(20, MY_COLOR_BRONZE, -1);
+    
 
     // spawn fruit for the first time
     spawn_fruits();
@@ -1160,18 +1194,43 @@ int info()
         mvprintw(mid_y_border + 1, center_x("KEYBINDS INFORMATION", mid_x_h), "KEYBINDS INFORMATION"); // keybind text
 
         mvprintw(mid_y_border + 3, center_x("Move Up        : ", mid_x), "Move Up        : "); // from here
+        attron(COLOR_PAIR(1));
         addch(ACS_UARROW);
+        attroff(COLOR_PAIR(1));
         mvprintw(mid_y_border + 4, center_x("Move Down      : ", mid_x), "Move Down      : ");
+        attron(COLOR_PAIR(13));
         addch(ACS_DARROW);
+        attroff(COLOR_PAIR(13));
         mvprintw(mid_y_border + 5, center_x("Move Right     : ", mid_x), "Move Right     : ");
+        attron(COLOR_PAIR(3));
         addch(ACS_RARROW);
+        attroff(COLOR_PAIR(3));
         mvprintw(mid_y_border + 6, center_x("Move Left      : ", mid_x), "Move Left      : ");
+        attron(COLOR_PAIR(2));
         addch(ACS_LARROW);
-        mvprintw(mid_y_border + 8, center_x("Pause Game      : [BACKSPACE]", mid_x + 6), "Pause Game     : [BACKSPACE]");
-        mvprintw(mid_y_border + 9, center_x("Return Menu     : [ESC]      ", mid_x + 6), "Return Menu    : [ESC]      ");
-        mvprintw(mid_y_border + 10, center_x("Start/Enter    : [ENTER]     ", mid_x + 6), "Start/Enter    : [ENTER]     ");
-        mvprintw(mid_y_border + 11, center_x("Save Data      : [S]         ", mid_x + 6), "Save Data      : [S]         ");
-        mvprintw(mid_y - 1, 3, "[ESC] to return"); // to here is keybind information
+        attroff(COLOR_PAIR(2));
+        // Pause Game - warnai [BACKSPACE]
+        mvprintw(mid_y_border + 8, center_x("Pause Game      : [BACKSPACE]", mid_x + 6), "Pause Game     : ");
+        attron(COLOR_PAIR(14));
+        printw("[BACKSPACE]");
+        attroff(COLOR_PAIR(14));
+        mvprintw(mid_y_border + 9, center_x("Return Menu     : [ESC]      ", mid_x + 6), "Return Menu    : ");
+        attron(COLOR_PAIR(16));
+        printw("[ESC]");
+        attroff(COLOR_PAIR(16));
+        mvprintw(mid_y_border + 10, center_x("Start/Enter    : [ENTER]     ", mid_x + 6), "Start/Enter    : ");
+        attron(COLOR_PAIR(13));
+        printw("[ENTER]");
+        attroff(COLOR_PAIR(13));
+        mvprintw(mid_y_border + 11, center_x("Save Data      : [S]         ", mid_x + 6), "Save Data      : ");
+        attron(COLOR_PAIR(5));
+        printw("[S]");
+        attroff(COLOR_PAIR(5));
+        mvprintw(mid_y - 1, 3, "");
+        attron(COLOR_PAIR(16));
+        printw("[ESC]");
+        attroff(COLOR_PAIR(16));
+        printw(" to return");
 
         refresh();
 
@@ -1202,20 +1261,36 @@ void printLeaderboard(int y, int x)
         int center = (50 - strlen(title)) / 2;
 
         // draw table, title dan outer line
-        attron(COLOR_PAIR(3));
+        attron(COLOR_PAIR(13));
         python(2, 5);
+        attroff(COLOR_PAIR(13));
+
+        attron(COLOR_PAIR(18));
         python(2, 74);
+        attroff(COLOR_PAIR(18));
+
+        attron(COLOR_PAIR(12));
         draw_border2(0, 0, screen_width, screen_height);
-        attroff(COLOR_PAIR(3));
+        attroff(COLOR_PAIR(12));
 
         // draw leaderboard box and content
-        wattron(printBoard, COLOR_PAIR(3));
+        wattron(printBoard, COLOR_PAIR(1));
         box(printBoard, 0, 0);
         mvwhline(printBoard, 2, 1, ACS_HLINE, 48);
         mvwprintw(printBoard, 0, center, "%s", title);
-        wattroff(printBoard, COLOR_PAIR(3));
+        wattroff(printBoard, COLOR_PAIR(1));
 
-        mvwprintw(printBoard, 24, 2, "Press [ESC] to return");
+        wattron(printBoard, COLOR_PAIR(4));
+        mvwprintw(printBoard, 24, 2, "Press ");
+        wattroff(printBoard, COLOR_PAIR(4));
+
+        wattron(printBoard, COLOR_PAIR(16));
+        wprintw(printBoard, "[ESC]");
+        wattroff(printBoard, COLOR_PAIR(16));
+
+        wattron(printBoard, COLOR_PAIR(4));
+        wprintw(printBoard, " to return");
+        wattroff(printBoard, COLOR_PAIR(4));
 
         // Header column
         mvwprintw(printBoard, 1, 2, "RANK   NAME                              SCORE");
@@ -1223,7 +1298,41 @@ void printLeaderboard(int y, int x)
         // Display a maximum of 20 data
         for (int i = 0; i < count && i < 20; i++)
         {
+            if (i == 0)
+            {
+                wattron(printBoard, COLOR_PAIR(19));
+            }
+            else if (i == 1)
+            {
+                wattron(printBoard, COLOR_PAIR(13));
+            }
+            else if (i == 2)
+            {
+                wattron(printBoard, COLOR_PAIR(20));
+            }
+            else
+            {
+                wattron(printBoard, COLOR_PAIR(4));
+            }
+
             mvwprintw(printBoard, i + 3, 2, "%2d.    %-20s              %5d", i + 1, board[i].nama, board[i].score);
+            
+            if (i == 0)
+            {
+                wattroff(printBoard, COLOR_PAIR(19));
+            }
+            else if (i == 1)
+            {
+                wattroff(printBoard, COLOR_PAIR(13));
+            }
+            else if (i == 2)
+            {
+                wattroff(printBoard, COLOR_PAIR(20));
+            }
+            else
+            {
+                wattroff(printBoard, COLOR_PAIR(4));
+            }
         }
 
         // mvwprintw(printBoard, 24, 2, "Tekan apa saja untuk kembali...");
