@@ -7,14 +7,15 @@
 
 #define MAX_SEGMENTS 1482 // default 1482
 #define FRAME_TIME 220
+#define MY_COLOR_NAVYBLUE 100
+#define MY_COLOR_GREENGRASS 101
+#define MY_COLOR_NEONGREEN 102
+#define MY_COLOR_MUTEDBLUE 103
+#define MY_COLOR_BRIGHTPEACH 104
+#define MY_COLOR_DARKBLUE 105
+#define MY_COLOR_ORANGE 106
+#define MY_COLOR_SKYBLUE 107
 
-#define COLOR_NAVYBLUE 10
-#define COLOR_GREENGRASS 11
-#define COLOR_NEONGREEN 12
-#define COLOR_WHITE 13
-#define COLOR_MUTEDBLUE 14
-#define COLOR_BRIGHTPEACH 15
-#define COLOR_DARKBLUE 16
 #define MAX_DATA 100
 
 //==================== structs & vars ====================//
@@ -40,7 +41,7 @@ leaderboard board[MAX_DATA];
 int count;
 
 // score
-int score = 20;
+int score = 0;
 char score_str[16];
 
 // game state
@@ -366,15 +367,25 @@ void draw()
 void pause()
 {
     // draw pause menu box
-    attron(COLOR_PAIR(3));
+    attron(COLOR_PAIR(16));
     draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
     mvprintw(screen_height / 2 - 2, screen_width - 9, "[  GAME  PAUSED  ]");
-    attroff(COLOR_PAIR(3));
+    attroff(COLOR_PAIR(16));
 
     // draw pause menu content
-    mvprintw(screen_height / 2, screen_width - 14, "Press [BACKSPACE] to Continue!");
-    refresh();
+    attron(COLOR_PAIR(4));
+    mvprintw(screen_height / 2, screen_width - 14, "Press ");
+    attroff(COLOR_PAIR(4));
 
+    attron(COLOR_PAIR(14));
+    printw("[BACKSPACE]");
+    attroff(COLOR_PAIR(14));
+
+    attron(COLOR_PAIR(4));
+    printw(" to Continue!");
+    attroff(COLOR_PAIR(4));
+
+    refresh();
     Sleep(FRAME_TIME);
 }
 
@@ -593,13 +604,31 @@ void game_over()
         int event = input();
 
         // draw game over menu box
-        attron(COLOR_PAIR(3));
+        attron(COLOR_PAIR(1));
         draw_border(screen_height / 2 - 1, screen_width - 24, 24, 2);
-        attroff(COLOR_PAIR(3));
+        attroff(COLOR_PAIR(1));
 
         // draw game over menu content
+        attron(COLOR_PAIR(4));
         mvaddstr(screen_height / 2, screen_width - 4, "Game  Over");
-        mvaddstr(screen_height / 2 + 1, screen_width - 22, "[SPACE] to restart, [ESC] to quit, [S] to save");
+        mvprintw(screen_height / 2 + 1, screen_width - 15, "");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(12));
+        printw("[SPACE]");
+        attroff(COLOR_PAIR(12));
+
+        attron(COLOR_PAIR(4));
+        printw(" to restart,");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(16));
+        printw("[ESC]");
+        attroff(COLOR_PAIR(16));
+
+        attron(COLOR_PAIR(4));
+        printw(" to quit");
+        attroff(COLOR_PAIR(4));
 
         // return to menu
         if (event == 1)
@@ -626,13 +655,31 @@ void you_win()
         int event = input();
 
         // draw you win menu box
-        attron(COLOR_PAIR(3));
-        draw_border(screen_height / 2 - 1, screen_width - 24, 24, 2);
-        attroff(COLOR_PAIR(3));
+        attron(COLOR_PAIR(11));
+        draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
+        attroff(COLOR_PAIR(11));
 
         // draw you win menu content
+        attron(COLOR_PAIR(4));
         mvaddstr(screen_height / 2, screen_width - 3, "YOU  WIN");
-        mvaddstr(screen_height / 2 + 1, screen_width - 22, "[SPACE] to restart, [ESC] to quit, [S] to save");
+        mvprintw(screen_height / 2 + 1, screen_width - 16, "");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(12));
+        printw("[SPACE]");
+        attroff(COLOR_PAIR(12));
+
+        attron(COLOR_PAIR(4));
+        printw(" to restart,");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(16));
+        printw("[ESC]");
+        attroff(COLOR_PAIR(16));
+
+        attron(COLOR_PAIR(4));
+        printw(" to quit");
+        attroff(COLOR_PAIR(4));
 
         // return to menu
         if (event == 1)
@@ -715,13 +762,14 @@ void init()
     start_color();
 
     // custom colors list
-    init_color(COLOR_GREENGRASS, 78, 639, 114);
-    init_color(COLOR_NAVYBLUE, 27, 12, 369);
-    init_color(COLOR_NEONGREEN, 312, 976, 480);
-    init_color(COLOR_WHITE, 968, 968, 945);
-    init_color(COLOR_MUTEDBLUE, 382, 445, 640);
-    init_color(COLOR_BRIGHTPEACH, 996, 718, 421);
-    init_color(COLOR_DARKBLUE, 156, 164, 210);
+    init_color(MY_COLOR_NAVYBLUE, 137, 164, 247);
+    init_color(MY_COLOR_GREENGRASS, 251, 433, 218);
+    init_color(MY_COLOR_NEONGREEN, 312, 976, 480);
+    init_color(MY_COLOR_MUTEDBLUE, 384, 447, 643);
+    init_color(MY_COLOR_BRIGHTPEACH, 1000, 722, 424);
+    init_color(MY_COLOR_DARKBLUE, 157, 165, 212);
+    init_color(MY_COLOR_ORANGE, 1000, 647, 0);
+    init_color(MY_COLOR_SKYBLUE, 5, 851, 917);
 
     // list if colors to be used in function
     can_change_color();
@@ -729,13 +777,16 @@ void init()
     init_pair(1, COLOR_RED, -1);
     init_pair(2, COLOR_GREEN, -1);
     init_pair(3, COLOR_YELLOW, -1);
-    init_pair(10, COLOR_NAVYBLUE, -1);
-    init_pair(11, COLOR_GREENGRASS, -1);
-    init_pair(12, COLOR_NEONGREEN, -1);
-    init_pair(13, COLOR_WHITE, -1);
-    init_pair(14, COLOR_MUTEDBLUE, -1);
-    init_pair(15, COLOR_BRIGHTPEACH, -1);
-    init_pair(16, COLOR_DARKBLUE, -1);
+    init_pair(4, COLOR_WHITE, -1);
+
+    init_pair(10, MY_COLOR_NAVYBLUE, -1);
+    init_pair(11, MY_COLOR_GREENGRASS, -1);
+    init_pair(12, MY_COLOR_NEONGREEN, -1);
+    init_pair(13, MY_COLOR_MUTEDBLUE, -1);
+    init_pair(14, MY_COLOR_BRIGHTPEACH, -1);
+    init_pair(15, MY_COLOR_DARKBLUE, -1);
+    init_pair(16, MY_COLOR_ORANGE, -1);
+    init_pair(17, MY_COLOR_SKYBLUE, -1);
 
     // spawn fruit for the first time
     spawn_fruits();
@@ -893,10 +944,14 @@ int menu()
         attroff(COLOR_PAIR(3));
 
         // draw creator name
+        attron(COLOR_PAIR(4));
         mvprintw(screen_height, 1, "By : D.R.A.G.S");
+        attroff(COLOR_PAIR(4));
 
         // draw ascii art
+        attron(COLOR_PAIR(12));
         print_art(screen_height / 2 - 9, screen_width / 2 - 14);
+        attroff(COLOR_PAIR(12));
 
         // print menu choicesP
         for (int i = 0; i < num_choice; i++)
@@ -1035,8 +1090,10 @@ int credit()
         draw_border2(mid_y_border, mid_x_border - 24, 24, 10); // inner box
         attroff(COLOR_PAIR(3));
 
-        // draw ascii art
+        // draw ascii
+        attron(COLOR_PAIR(12));
         print_art(screen_height / 2 - 13, screen_width / 2 - 14);
+        attroff(COLOR_PAIR(12));
 
         // draw content
         mvprintw(mid_y_border + 1, center_x("CREDIT", mid_x), "CREDIT"); // credit text
@@ -1046,9 +1103,19 @@ int credit()
             mvprintw(mid_y_border + 3 + i, center_x(nama[i], mid_x), "%s", nama[i]); // name text
         }
 
+        attron(COLOR_PAIR(14));
         mvprintw(mid_y_border + 9, center_x("THANKS FOR PLAYING", mid_x), "THANKS FOR PLAYING"); // thanks text
-        mvprintw(mid_y - 1, 3, "[ESC] to return");                                               // esc text
+        attroff(COLOR_PAIR(14));
 
+        mvprintw(mid_y - 1, 3, ""); // esc text
+
+        attron(COLOR_PAIR(16));
+        printw("[ESC]");
+        attroff(COLOR_PAIR(16));
+
+        attron(COLOR_PAIR(4));
+        printw(" to return");
+        attroff(COLOR_PAIR(4));
         refresh();
 
         // back to main menu
@@ -1085,7 +1152,9 @@ int info()
         attroff(COLOR_PAIR(3));
 
         // draw ascii art
+        attron(COLOR_PAIR(12));
         print_art(screen_height / 2 - 13, screen_width / 2 - 14);
+        attroff(COLOR_PAIR(12));
 
         // draw content
         mvprintw(mid_y_border + 1, center_x("KEYBINDS INFORMATION", mid_x_h), "KEYBINDS INFORMATION"); // keybind text
