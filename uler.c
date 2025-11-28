@@ -5,7 +5,7 @@
 #include <time.h>
 #include <locale.h>
 
-#define MAX_SEGMENTS 1482
+#define MAX_SEGMENTS 1482 //default 1482
 #define FRAME_TIME 220
 #define MY_COLOR_NAVYBLUE 100
 #define MY_COLOR_GREENGRASS 101
@@ -14,6 +14,7 @@
 #define MY_COLOR_BRIGHTPEACH 104
 #define MY_COLOR_DARKBLUE 105
 #define MY_COLOR_ORANGE 106
+#define MY_COLOR_SKYBLUE 107
 
 //==================== structs & vars ====================//
 
@@ -466,9 +467,9 @@ void you_win()
         int event = input();
 
         // draw you win menu box
-        attron(COLOR_PAIR(11));
+        attron(COLOR_PAIR(17));
         draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
-        attroff(COLOR_PAIR(11));
+        attroff(COLOR_PAIR(17));
 
         // draw you win menu content
         attron(COLOR_PAIR(4));
@@ -573,6 +574,7 @@ void init()
     init_color(MY_COLOR_BRIGHTPEACH, 1000, 722, 424);
     init_color(MY_COLOR_DARKBLUE, 157, 165, 212);
     init_color(MY_COLOR_ORANGE, 1000, 647, 0);
+    init_color(MY_COLOR_SKYBLUE, 5, 851, 917);
 
     // list if colors to be used in function
     can_change_color();
@@ -591,6 +593,7 @@ void init()
     init_pair(14, MY_COLOR_BRIGHTPEACH, -1);
     init_pair(15, MY_COLOR_DARKBLUE, -1);
     init_pair(16, MY_COLOR_ORANGE, -1);
+    init_pair(17, MY_COLOR_SKYBLUE, -1);
 
     // spawn fruit for the first time
     spawn_fruits();
@@ -747,9 +750,9 @@ int menu()
         attroff(COLOR_PAIR(4));
 
         // draw ascii art
-        attron(COLOR_PAIR(16));
+        attron(COLOR_PAIR(12));
         print_art(screen_height / 2 - 9, screen_width / 2 - 14);
-        attroff(COLOR_PAIR(16));
+        attroff(COLOR_PAIR(12));
 
         // print menu choicesP
         for (int i = 0; i < num_choice; i++)
@@ -885,9 +888,9 @@ int credit()
         attroff(COLOR_PAIR(3));
 
         // draw ascii
-        attron(COLOR_PAIR(16));
+        attron(COLOR_PAIR(12));
         print_art(screen_height / 2 - 13, screen_width / 2 - 14);
-        attroff(COLOR_PAIR(16));
+        attroff(COLOR_PAIR(12));
 
         // draw content
         mvprintw(mid_y_border + 1, center_x("CREDIT", mid_x), "CREDIT"); // credit text
@@ -947,7 +950,9 @@ int info()
         attroff(COLOR_PAIR(3));
 
         // draw ascii art
+        attron(COLOR_PAIR(12));
         print_art(screen_height / 2 - 13, screen_width / 2 - 14);
+        attroff(COLOR_PAIR(12));
 
         // draw content
         mvprintw(mid_y_border + 1, center_x("KEYBINDS INFORMATION", mid_x_h), "KEYBINDS INFORMATION"); // keybind text
