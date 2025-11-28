@@ -5,7 +5,7 @@
 #include <time.h>
 #include <locale.h>
 
-#define MAX_SEGMENTS 1482 //default 1482
+#define MAX_SEGMENTS 1482 // default 1482
 #define FRAME_TIME 220
 #define MY_COLOR_NAVYBLUE 100
 #define MY_COLOR_GREENGRASS 101
@@ -367,15 +367,25 @@ void draw()
 void pause()
 {
     // draw pause menu box
-    attron(COLOR_PAIR(3));
+    attron(COLOR_PAIR(16));
     draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
     mvprintw(screen_height / 2 - 2, screen_width - 9, "[  GAME  PAUSED  ]");
-    attroff(COLOR_PAIR(3));
+    attroff(COLOR_PAIR(16));
 
     // draw pause menu content
-    mvprintw(screen_height / 2, screen_width - 14, "Press [BACKSPACE] to Continue!");
-    refresh();
+    attron(COLOR_PAIR(4));
+    mvprintw(screen_height / 2, screen_width - 14, "Press ");
+    attroff(COLOR_PAIR(4));
 
+    attron(COLOR_PAIR(14));
+    printw("[BACKSPACE]");
+    attroff(COLOR_PAIR(14));
+
+    attron(COLOR_PAIR(4));
+    printw(" to Continue!");
+    attroff(COLOR_PAIR(4));
+
+    refresh();
     Sleep(FRAME_TIME);
 }
 
@@ -594,13 +604,31 @@ void game_over()
         int event = input();
 
         // draw game over menu box
-        attron(COLOR_PAIR(3));
+        attron(COLOR_PAIR(1));
         draw_border(screen_height / 2 - 1, screen_width - 24, 24, 2);
-        attroff(COLOR_PAIR(3));
+        attroff(COLOR_PAIR(1));
 
         // draw game over menu content
+        attron(COLOR_PAIR(4));
         mvaddstr(screen_height / 2, screen_width - 4, "Game  Over");
-        mvaddstr(screen_height / 2 + 1, screen_width - 22, "[SPACE] to restart, [ESC] to quit, [S] to save");
+        mvprintw(screen_height / 2 + 1, screen_width - 15, "");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(12));
+        printw("[SPACE]");
+        attroff(COLOR_PAIR(12));
+
+        attron(COLOR_PAIR(4));
+        printw(" to restart,");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(16));
+        printw("[ESC]");
+        attroff(COLOR_PAIR(16));
+
+        attron(COLOR_PAIR(4));
+        printw(" to quit");
+        attroff(COLOR_PAIR(4));
 
         // return to menu
         if (event == 1)
@@ -627,13 +655,31 @@ void you_win()
         int event = input();
 
         // draw you win menu box
-        attron(COLOR_PAIR(17));
+        attron(COLOR_PAIR(11));
         draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
-        attroff(COLOR_PAIR(17));
+        attroff(COLOR_PAIR(11));
 
         // draw you win menu content
+        attron(COLOR_PAIR(4));
         mvaddstr(screen_height / 2, screen_width - 3, "YOU  WIN");
-        mvaddstr(screen_height / 2 + 1, screen_width - 22, "[SPACE] to restart, [ESC] to quit, [S] to save");
+        mvprintw(screen_height / 2 + 1, screen_width - 16, "");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(12));
+        printw("[SPACE]");
+        attroff(COLOR_PAIR(12));
+
+        attron(COLOR_PAIR(4));
+        printw(" to restart,");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(16));
+        printw("[ESC]");
+        attroff(COLOR_PAIR(16));
+
+        attron(COLOR_PAIR(4));
+        printw(" to quit");
+        attroff(COLOR_PAIR(4));
 
         // return to menu
         if (event == 1)
@@ -898,7 +944,9 @@ int menu()
         attroff(COLOR_PAIR(3));
 
         // draw creator name
+        attron(COLOR_PAIR(4));
         mvprintw(screen_height, 1, "By : D.R.A.G.S");
+        attroff(COLOR_PAIR(4));
 
         // draw ascii art
         attron(COLOR_PAIR(12));
@@ -1055,9 +1103,19 @@ int credit()
             mvprintw(mid_y_border + 3 + i, center_x(nama[i], mid_x), "%s", nama[i]); // name text
         }
 
+        attron(COLOR_PAIR(14));
         mvprintw(mid_y_border + 9, center_x("THANKS FOR PLAYING", mid_x), "THANKS FOR PLAYING"); // thanks text
-        mvprintw(mid_y - 1, 3, "[ESC] to return");                                               // esc text
+        attroff(COLOR_PAIR(14));
 
+        mvprintw(mid_y - 1, 3, ""); // esc text
+
+        attron(COLOR_PAIR(16));
+        printw("[ESC]");
+        attroff(COLOR_PAIR(16));
+
+        attron(COLOR_PAIR(4));
+        printw(" to return");
+        attroff(COLOR_PAIR(4));
         refresh();
 
         // back to main menu
