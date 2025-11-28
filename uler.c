@@ -16,6 +16,8 @@
 #define MY_COLOR_ORANGE 106
 #define MY_COLOR_SKYBLUE 107
 
+#define MAX_DATA 100
+
 //==================== structs & vars ====================//
 
 // struct variable
@@ -26,8 +28,20 @@ typedef struct
 
 } vec2;
 
+// struct leaderboard
+typedef struct
+{
+    char nama[50];
+    int score;
+} leaderboard;
+
+leaderboard board[MAX_DATA];
+
+// banyak data leaderboard
+int count;
+
 // score
-int score = 0;
+int score = 20;
 char score_str[16];
 
 // game state
@@ -47,7 +61,7 @@ vec2 dir = {1, 0};
 vec2 segments[MAX_SEGMENTS + 1];
 
 // fruit
-#define MAX_FRUITS 20
+#define MAX_FRUITS 40
 vec2 fruits[MAX_FRUITS];
 int fruit_count = 1;
 
@@ -64,6 +78,10 @@ void spawn_fruits();
 void draw_border(int y, int x, int width, int height);
 void draw_border2(int y, int x, int width, int height);
 void print_art(int y, int x);
+void printLeaderboard(int y, int x);
+void python(int y, int x);
+void writeLeaderboard(int y, int x);
+void loadLeaderboard();
 int center_x(const char *text, int w);
 void quit_game();
 void restart_game();
@@ -152,7 +170,7 @@ void update()
     }
 
     // update the number of fruit based on score
-    int new_fruit_count = 1 + (score / 10); // every 10 score, add 1 fruit
+    int new_fruit_count = 1 + (score / 5); // every 10 score, add 1 fruit
     if (new_fruit_count > MAX_FRUITS)
     {
         new_fruit_count = MAX_FRUITS;
@@ -208,6 +226,37 @@ void update()
     }
 
     Sleep(FRAME_TIME);
+}
+
+// load leaderboard and sorting
+void loadLeaderboard()
+{
+    count = 0; // reset counter
+
+    FILE *fptr = fopen("data.txt", "r");
+    if (!fptr)
+        return;
+
+    while (fscanf(fptr, " %49[^;];%d", board[count].nama, &board[count].score) == 2)
+    {
+        count++;
+    }
+
+    // sorting skor tertinggi ke bawah
+    for (int i = 0; i < count - 1; i++)
+    {
+        for (int j = 0; j < count - i - 1; j++)
+        {
+            if (board[j].score < board[j + 1].score)
+            {
+                leaderboard temp = board[j];
+                board[j] = board[j + 1];
+                board[j + 1] = temp;
+            }
+        }
+    }
+
+    fclose(fptr);
 }
 
 //============================== Game Logic Function ==============================//
@@ -318,30 +367,20 @@ void draw()
 void pause()
 {
     // draw pause menu box
-    attron(COLOR_PAIR(16));
+    attron(COLOR_PAIR(3));
     draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
     mvprintw(screen_height / 2 - 2, screen_width - 9, "[  GAME  PAUSED  ]");
-    attroff(COLOR_PAIR(16));
+    attroff(COLOR_PAIR(3));
 
     // draw pause menu content
-    attron(COLOR_PAIR(4));
-    mvprintw(screen_height / 2, screen_width - 14, "Press ");
-    attroff(COLOR_PAIR(4));
-
-    attron(COLOR_PAIR(14));
-    printw("[BACKSPACE]");
-    attroff(COLOR_PAIR(14));
-
-    attron(COLOR_PAIR(4));
-    printw(" to Continue!");
-    attroff(COLOR_PAIR(4));
-
+    mvprintw(screen_height / 2, screen_width - 14, "Press [BACKSPACE] to Continue!");
     refresh();
+
     Sleep(FRAME_TIME);
 }
 
 // ascii art function
-void print_art(int y, int x)
+void print_art(int y, int x) // snake peak logo
 {
     // asci art is stored in an array
     const char *art[] = {
@@ -364,9 +403,141 @@ void print_art(int y, int x)
     }
 }
 
+void print_inputName(int y, int x) // your name logo
+{
+
+    const char *insert[] = {
+        "    ____                     __    __  __                    _   __                   ",
+        "   /  _/___  ________  _____/ /_   \\ \\/ /___  __  _______   / | / /___ _____ ___  ___ ",
+        "   / // __ \\/ ___/ _ \\/ ___/ __/    \\  / __ \\/ / / / ___/  /  |/ / __ `/ __ `__ \\/ _ \\",
+        " _/ // / / (__  )  __/ /  / /_      / / /_/ / /_/ / /     / /|  / /_/ / / / / / /  __/",
+        "/___/_/ /_/____/\\___/_/   \\__/     /_/\\____/\\__,_/_/     /_/ |_|\\__,_/_/ /_/ /_/\\___/ "};
+
+    int lines = sizeof(insert) / sizeof(insert[0]);
+
+    // print ascii art
+    for (int i = 0; i < lines; i++)
+    {
+        mvprintw(y + i, x, "%s", insert[i]);
+    }
+}
+
+void python(int y, int x) // python logo
+{
+    const char *snake_art[] = {
+        "             ..~~~+=====...             ",
+        "          .?77777777777777$.            ",
+        "          777..777777777777$+           ",
+        "         .77    7777777777$$$           ",
+        "         .777 .7777777777$$$$           ",
+        "         .7777777777777$$$$$$           ",
+        "         ..........:77$$$$$$$           ",
+        "  .77777777777777777$$$$$$$$$.=======.  ",
+        " 777777777777777777$$$$$$$$$$.========  ",
+        "7777777777777777$$$$$$$$$$$$$.========= ",
+        "77777777777777$$$$$$$$$$$$$$$.========= ",
+        "777777777777$$$$$$$$$$$$$$$$ :========+.",
+        "77777777777$$$$$$$$$$$$$$+..=========++~",
+        "777777777$$..~=====================+++++",
+        "77777777$~.~~~~=~=================+++++.",
+        "777777$$$.~~~===================+++++++.",
+        "77777$$$$.~~==================++++++++: ",
+        " 7$$$$$$$.==================++++++++++. ",
+        " .,$$$$$$.================++++++++++~.  ",
+        "         .=========~.........           ",
+        "         .=============++++++           ",
+        "         .===========+++..+++           ",
+        "         .==========+++.  .++           ",
+        "          ,=======++++++,,++,           ",
+        "          ..=====+++++++++=.            ",
+        "                ..~+=...                "};
+
+    int lines = sizeof(snake_art) / sizeof(snake_art[0]);
+
+    // print ascii art
+    for (int i = 0; i < lines; i++)
+    {
+        mvprintw(y + i, x, "%s", snake_art[i]);
+    }
+}
+
 //============================== Draw Function ==============================//
 
-//============================== Fature For Quit, Paused, Restart, Game over, win, settings Function ==============================//
+//============================== Feature For Quit, Paused, Restart, Game over, win, settings, leaderboard Function ==============================//
+
+// Write and Append leaderboard
+void writeLeaderboard(int y, int x)
+{
+    nodelay(win, FALSE);
+
+    clear();
+    refresh();
+
+    char name[50];
+    int rewriteIndex = -1;
+
+    // Window for input
+    WINDOW *inputBox = newwin(3, 40, y, x); // Height 7, width 40, position according to arguments
+    box(inputBox, 0, 0);
+
+    // draw border for save box
+    attron(COLOR_PAIR(3));
+    draw_border2(0, 0, screen_width, screen_height);
+    attroff(COLOR_PAIR(3));
+    print_inputName(9, screen_width / 2 - 12);
+    refresh();
+
+    // draw input
+    mvwprintw(inputBox, 1, 2, "Name : ");
+    wrefresh(inputBox);
+
+    echo();
+    mvwgetnstr(inputBox, 1, 9, name, sizeof(name) - 1);
+    noecho();
+
+    delwin(inputBox);
+    clear();
+    refresh();
+
+    // Check if the name already exists
+    for (int i = 0; i < count; i++)
+    {
+        if (strcmp(board[i].nama, name) == 0)
+        {
+            rewriteIndex = i;
+            break;
+        }
+    }
+
+    // if rewrite → clear the file first
+    if (rewriteIndex != -1)
+    {
+        FILE *clearf = fopen("data.txt", "w");
+        fclose(clearf);
+    }
+
+    FILE *fptr = fopen("data.txt", "a");
+
+    // write the data
+    if (rewriteIndex == -1)
+    {
+        fprintf(fptr, "%s;%d\n", name, score);
+    }
+    else
+    {
+        for (int i = 0; i < count; i++)
+        {
+            if (i == rewriteIndex)
+                fprintf(fptr, "%s;%d\n", name, score);
+            else
+                fprintf(fptr, "%s;%d\n", board[i].nama, board[i].score);
+        }
+    }
+
+    fclose(fptr);
+
+    nodelay(win, TRUE);
+}
 
 // quit game function
 void quit_game()
@@ -423,35 +594,24 @@ void game_over()
         int event = input();
 
         // draw game over menu box
-        attron(COLOR_PAIR(1));
-        draw_border(screen_height / 2 - 1, screen_width - 17, 17, 2);
-        attroff(COLOR_PAIR(1));
+        attron(COLOR_PAIR(3));
+        draw_border(screen_height / 2 - 1, screen_width - 24, 24, 2);
+        attroff(COLOR_PAIR(3));
 
         // draw game over menu content
-        attron(COLOR_PAIR(4));
         mvaddstr(screen_height / 2, screen_width - 4, "Game  Over");
-        mvprintw(screen_height / 2 + 1, screen_width - 15, "");
-        attroff(COLOR_PAIR(4));
-
-        attron(COLOR_PAIR(12));
-        printw("[SPACE]");
-        attroff(COLOR_PAIR(12));
-
-        attron(COLOR_PAIR(4));
-        printw(" to restart,");
-        attroff(COLOR_PAIR(4));
-
-        attron(COLOR_PAIR(16));
-        printw("[ESC]");
-        attroff(COLOR_PAIR(16));
-
-        attron(COLOR_PAIR(4));
-        printw(" to quit");
-        attroff(COLOR_PAIR(4));
+        mvaddstr(screen_height / 2 + 1, screen_width - 22, "[SPACE] to restart, [ESC] to quit, [S] to save");
 
         // return to menu
         if (event == 1)
         {
+            return;
+        }
+
+        if (event == 10)
+        {
+            loadLeaderboard();
+            writeLeaderboard(screen_height / 2 + 2, screen_width - 20);
             return;
         }
 
@@ -472,26 +632,8 @@ void you_win()
         attroff(COLOR_PAIR(17));
 
         // draw you win menu content
-        attron(COLOR_PAIR(4));
         mvaddstr(screen_height / 2, screen_width - 3, "YOU  WIN");
-        mvprintw(screen_height / 2 + 1, screen_width - 16, "");
-        attroff(COLOR_PAIR(4));
-
-        attron(COLOR_PAIR(12));
-        printw("[SPACE]");
-        attroff(COLOR_PAIR(12));
-
-        attron(COLOR_PAIR(4));
-        printw(" to restart,");
-        attroff(COLOR_PAIR(4));
-
-        attron(COLOR_PAIR(16));
-        printw("[ESC]");
-        attroff(COLOR_PAIR(16));
-
-        attron(COLOR_PAIR(4));
-        printw(" to quit");
-        attroff(COLOR_PAIR(4));
+        mvaddstr(screen_height / 2 + 1, screen_width - 22, "[SPACE] to restart, [ESC] to quit, [S] to save");
 
         // return to menu
         if (event == 1)
@@ -499,15 +641,22 @@ void you_win()
             return;
         }
 
+        if (event == 10)
+        {
+            loadLeaderboard();
+            writeLeaderboard(screen_height / 2 + 2, screen_width - 20);
+            return;
+        }
+
         Sleep(FRAME_TIME);
     }
 }
 
-//============================== Fature For Quit, Paused, Restart, Game over, win, settings Function ==============================//
+//============================== Feature For Quit, Paused, Restart, Game over, win, settings, leaderboard Function ==============================//
 
 //============================== Setup Terminal Function ==============================//
 
-// lock console
+// lock console function
 void set_console_char_size(short cols, short rows)
 {
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -579,8 +728,6 @@ void init()
     // list if colors to be used in function
     can_change_color();
     use_default_colors();
-
-    // Warna Dasar
     init_pair(1, COLOR_RED, -1);
     init_pair(2, COLOR_GREEN, -1);
     init_pair(3, COLOR_YELLOW, -1);
@@ -705,6 +852,12 @@ int input()
         is_paused = !is_paused;
     }
 
+    // input for s (save)
+    else if (pressed == 's' || pressed == 'S')
+    {
+        return 10;
+    }
+
     return 0;
 }
 
@@ -726,8 +879,8 @@ int menu()
     int start_y = screen_height / 2 + 4;
     int start_x = screen_width / 2 + 10;
 
-    const char *choices[4] = {"START GAME", "SETTINGS", "CREDIT", "QUIT"};
-    int num_choice = 4;
+    const char *choices[5] = {"START GAME", "SETTINGS", "HALL OF FAME", "CREDIT", "QUIT"};
+    int num_choice = 5;
     int highlight = 0;
     int input_menu;
     int extra_space = 0;
@@ -740,14 +893,12 @@ int menu()
 
         // draw main menu box
         attron(COLOR_PAIR(3));
-        draw_border2(0, 0, screen_width, screen_height);         // outer box
-        draw_border2(start_y, start_x, menu_width, menu_height); // inner box
+        draw_border2(0, 0, screen_width, screen_height);             // outer box
+        draw_border2(start_y, start_x, menu_width, menu_height + 1); // inner box
         attroff(COLOR_PAIR(3));
 
         // draw creator name
-        attron(COLOR_PAIR(4));
         mvprintw(screen_height, 1, "By : D.R.A.G.S");
-        attroff(COLOR_PAIR(4));
 
         // draw ascii art
         attron(COLOR_PAIR(12));
@@ -787,11 +938,11 @@ int menu()
         case KEY_UP:
             highlight--;
             if (highlight < 0)
-                highlight = 3;
+                highlight = 4;
             break;
         case KEY_DOWN:
             highlight++;
-            if (highlight > 3)
+            if (highlight >= 5)
                 highlight = 0;
             break;
         case 10: // Enter
@@ -805,9 +956,13 @@ int menu()
             }
             if (highlight == 2)
             {
-                return 3; // credit
+                return 3; // HALL OF FAME
             }
             if (highlight == 3)
+            {
+                return 4; // credit
+            }
+            if (highlight == 4)
             {
                 return 0; // quit
             }
@@ -900,19 +1055,8 @@ int credit()
             mvprintw(mid_y_border + 3 + i, center_x(nama[i], mid_x), "%s", nama[i]); // name text
         }
 
-        attron(COLOR_PAIR(14));
         mvprintw(mid_y_border + 9, center_x("THANKS FOR PLAYING", mid_x), "THANKS FOR PLAYING"); // thanks text
-        attroff(COLOR_PAIR(14));
-
-        mvprintw(mid_y - 1, 3, ""); // esc text
-
-        attron(COLOR_PAIR(16));
-        printw("[ESC]");
-        attroff(COLOR_PAIR(16));
-
-        attron(COLOR_PAIR(4));
-        printw(" to return");
-        attroff(COLOR_PAIR(4));
+        mvprintw(mid_y - 1, 3, "[ESC] to return");                                               // esc text
 
         refresh();
 
@@ -946,7 +1090,7 @@ int info()
         // draw settings menu box
         attron(COLOR_PAIR(3));
         draw_border2(0, 0, screen_width, screen_height);       // outer box
-        draw_border2(mid_y_border, mid_x_border - 24, 24, 11); // inner box
+        draw_border2(mid_y_border, mid_x_border - 24, 24, 12); // inner box
         attroff(COLOR_PAIR(3));
 
         // draw ascii art
@@ -968,6 +1112,7 @@ int info()
         mvprintw(mid_y_border + 8, center_x("Pause Game      : [BACKSPACE]", mid_x + 6), "Pause Game     : [BACKSPACE]");
         mvprintw(mid_y_border + 9, center_x("Return Menu     : [ESC]      ", mid_x + 6), "Return Menu    : [ESC]      ");
         mvprintw(mid_y_border + 10, center_x("Start/Enter    : [ENTER]     ", mid_x + 6), "Start/Enter    : [ENTER]     ");
+        mvprintw(mid_y_border + 11, center_x("Save Data      : [S]         ", mid_x + 6), "Save Data      : [S]         ");
         mvprintw(mid_y - 1, 3, "[ESC] to return"); // to here is keybind information
 
         refresh();
@@ -977,6 +1122,61 @@ int info()
         if (pressed == 27)
         {
             return 1;
+        }
+    }
+}
+
+// leaderboard function
+void printLeaderboard(int y, int x)
+{
+    nodelay(win, FALSE);
+    clear();
+    refresh();
+
+    WINDOW *printBoard = newwin(26, 50, y, x);
+    // Height 26 rows, width 50 columns, position y=1, x=1 (so it's not too cramped)
+
+    timeout(50);
+
+    while (1)
+    {
+        char title[] = "[ HALL OF FAME ]";
+        int center = (50 - strlen(title)) / 2;
+
+        // draw table, title dan outer line
+        attron(COLOR_PAIR(3));
+        python(2, 5);
+        python(2, 74);
+        draw_border2(0, 0, screen_width, screen_height);
+        attroff(COLOR_PAIR(3));
+
+        // draw leaderboard box and content
+        wattron(printBoard, COLOR_PAIR(3));
+        box(printBoard, 0, 0);
+        mvwhline(printBoard, 2, 1, ACS_HLINE, 48);
+        mvwprintw(printBoard, 0, center, "%s", title);
+        wattroff(printBoard, COLOR_PAIR(3));
+
+        mvwprintw(printBoard, 24, 2, "Press [ESC] to return");
+
+        // Header column
+        mvwprintw(printBoard, 1, 2, "RANK   NAME                              SCORE");
+
+        // Display a maximum of 20 data
+        for (int i = 0; i < count && i < 20; i++)
+        {
+            mvwprintw(printBoard, i + 3, 2, "%2d.    %-20s              %5d", i + 1, board[i].nama, board[i].score);
+        }
+
+        // mvwprintw(printBoard, 24, 2, "Tekan apa saja untuk kembali...");
+        wrefresh(printBoard);
+
+        int pressed = getch();
+        if (pressed == 27)
+        {
+            delwin(printBoard);
+            nodelay(win, TRUE);
+            break;
         }
     }
 }
@@ -1035,6 +1235,11 @@ int main(int argc, char const *argv[])
             info(); // setiings
         }
         if (action == 3)
+        {
+            loadLeaderboard();
+            printLeaderboard(screen_height / 2 - 12, screen_width - 25); // leaderboard
+        }
+        if (action == 4)
         {
             credit(); // credit
         }
