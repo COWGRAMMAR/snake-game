@@ -390,7 +390,7 @@ void pause()
     // draw pause menu box
     attron(COLOR_PAIR(16));
     draw_border2(screen_height / 2 - 2, screen_width - 17, 17, 3);
-    mvprintw(screen_height / 2 - 2, screen_width - 9, "[  GAME  PAUSED  ]");
+    mvprintw(screen_height / 2 - 2, screen_width - 8, "[  GAME  PAUSED  ]");
     attroff(COLOR_PAIR(16));
 
     // draw pause menu content
