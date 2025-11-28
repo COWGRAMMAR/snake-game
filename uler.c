@@ -1,12 +1,32 @@
+//================================ WARNING ================================//
+/*
+Warning: This source code only applies to the Windows version.
+
+If you want to compile manually, please install the pdcurses library from this
+GitHub link:
+
+https://github.com/COWGRAMMAR/snake-game
+
+If you wish to force a port to Linux, please download the ncurses library.
+Some features might be broken because this source code was specifically
+designed for Windows. Also, please change some syntax to be compatible with
+Linux (there is a comment containing the replacement syntax for Linux compatibility).
+
+Thank you and enjoy.
+*/
+//================================ WARNING ================================//
+
 #include <curses.h>
-#include <windows.h>
+#include <windows.h> // #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <locale.h>
 
 #define MAX_SEGMENTS 1482 // default 1482
-#define FRAME_TIME 220
+#define FRAME_TIME 220    // default 220           // #define FRAME_TIME 220000
+#define MAX_DATA 100      // default 100
+
 #define MY_COLOR_NAVYBLUE 100
 #define MY_COLOR_GREENGRASS 101
 #define MY_COLOR_NEONGREEN 102
@@ -18,8 +38,6 @@
 #define MY_COLOR_YELLOW 108
 #define MY_COLOR_GOLD 109
 #define MY_COLOR_BRONZE 110
-
-#define MAX_DATA 100
 
 //==================== structs & vars ====================//
 
@@ -44,7 +62,7 @@ leaderboard board[MAX_DATA];
 int count;
 
 // score
-int score = 0;
+int score = 0; // default 0
 char score_str[16];
 
 // game state
@@ -55,8 +73,8 @@ bool is_running = true;
 WINDOW *win;
 
 // screen size
-int screen_width = 59;
-int screen_height = 28;
+int screen_width = 59;  // default 59
+int screen_height = 28; // default 28
 
 // snake
 vec2 head = {0, 0};
@@ -64,7 +82,7 @@ vec2 dir = {1, 0};
 vec2 segments[MAX_SEGMENTS + 1];
 
 // fruit
-#define MAX_FRUITS 40
+#define MAX_FRUITS 30 // default 30
 vec2 fruits[MAX_FRUITS];
 int fruit_count = 1;
 
@@ -173,7 +191,7 @@ void update()
     }
 
     // update the number of fruit based on score
-    int new_fruit_count = 1 + (score / 5); // every 10 score, add 1 fruit
+    int new_fruit_count = 1 + (score / 5); // every 5 score, add 1 fruit
     if (new_fruit_count > MAX_FRUITS)
     {
         new_fruit_count = MAX_FRUITS;
@@ -228,7 +246,7 @@ void update()
         }
     }
 
-    Sleep(FRAME_TIME);
+    Sleep(FRAME_TIME); // usleep(FRAME_TIME);
 }
 
 // load leaderboard and sorting
@@ -245,7 +263,7 @@ void loadLeaderboard()
         count++;
     }
 
-    // sorting skor tertinggi ke bawah
+    // Sorting from the highest score downwards
     for (int i = 0; i < count - 1; i++)
     {
         for (int j = 0; j < count - i - 1; j++)
@@ -360,7 +378,7 @@ void draw()
     }
     attroff(COLOR_PAIR(2));
 
-    // draw score etc'
+    // draw score etc
     attron(COLOR_PAIR(3));
     draw_border(0, 0, screen_width, screen_height);
     attroff(COLOR_PAIR(3));
@@ -389,7 +407,7 @@ void pause()
     attroff(COLOR_PAIR(4));
 
     refresh();
-    Sleep(FRAME_TIME);
+    Sleep(FRAME_TIME); // usleep(FRAME_TIME);
 }
 
 // ascii art function
@@ -418,7 +436,7 @@ void print_art(int y, int x) // snake peak logo
 
 void print_inputName(int y, int x) // your name logo
 {
-
+    // asci art is stored in an array
     const char *insert[] = {
         "    ____                     __    __  __                    _   __                   ",
         "   /  _/___  ________  _____/ /_   \\ \\/ /___  __  _______   / | / /___ _____ ___  ___ ",
@@ -437,6 +455,7 @@ void print_inputName(int y, int x) // your name logo
 
 void python(int y, int x) // python logo
 {
+    // asci art is stored in an array
     const char *snake_art[] = {
         "             ..~~~+=====...             ",
         "          .?77777777777777$.            ",
@@ -500,11 +519,11 @@ void writeLeaderboard(int y, int x)
     attron(COLOR_PAIR(16));
     draw_border2(0, 0, screen_width, screen_height);
     attroff(COLOR_PAIR(16));
-    
+
     attron(COLOR_PAIR(1));
     print_inputName(9, screen_width / 2 - 12);
     attroff(COLOR_PAIR(1));
-    
+
     refresh();
 
     // draw input
@@ -621,7 +640,7 @@ void game_over()
         // draw game over menu content
         attron(COLOR_PAIR(4));
         mvaddstr(screen_height / 2, screen_width - 4, "Game  Over");
-        mvprintw(screen_height / 2 + 1, screen_width - 21,"");
+        mvprintw(screen_height / 2 + 1, screen_width - 21, "");
         attroff(COLOR_PAIR(4));
 
         attron(COLOR_PAIR(12));
@@ -654,6 +673,7 @@ void game_over()
             return;
         }
 
+        // save data game
         if (event == 10)
         {
             loadLeaderboard();
@@ -713,6 +733,7 @@ void you_win()
             return;
         }
 
+        // save data game
         if (event == 10)
         {
             loadLeaderboard();
@@ -720,7 +741,7 @@ void you_win()
             return;
         }
 
-        Sleep(FRAME_TIME);
+        Sleep(FRAME_TIME); // usleep(FRAME_TIME);
     }
 }
 
@@ -808,6 +829,7 @@ void init()
     init_pair(3, COLOR_YELLOW, -1);
     init_pair(4, COLOR_WHITE, -1);
     init_pair(5, COLOR_MAGENTA, -1);
+    init_pair(6, COLOR_BLUE, -1);
 
     init_pair(10, MY_COLOR_NAVYBLUE, -1);
     init_pair(11, MY_COLOR_GREENGRASS, -1);
@@ -820,7 +842,6 @@ void init()
     init_pair(18, MY_COLOR_YELLOW, -1);
     init_pair(19, MY_COLOR_GOLD, -1);
     init_pair(20, MY_COLOR_BRONZE, -1);
-    
 
     // spawn fruit for the first time
     spawn_fruits();
@@ -1015,6 +1036,7 @@ int menu()
         refresh();
         input_menu = getch();
 
+        // scroll up or scroll down
         switch (input_menu)
         {
         case KEY_UP:
@@ -1027,6 +1049,7 @@ int menu()
             if (highlight >= 5)
                 highlight = 0;
             break;
+
         case 10: // Enter
             if (highlight == 0)
             {
@@ -1198,9 +1221,9 @@ int info()
         addch(ACS_UARROW);
         attroff(COLOR_PAIR(1));
         mvprintw(mid_y_border + 4, center_x("Move Down      : ", mid_x), "Move Down      : ");
-        attron(COLOR_PAIR(13));
+        attron(COLOR_PAIR(6));
         addch(ACS_DARROW);
-        attroff(COLOR_PAIR(13));
+        attroff(COLOR_PAIR(6));
         mvprintw(mid_y_border + 5, center_x("Move Right     : ", mid_x), "Move Right     : ");
         attron(COLOR_PAIR(3));
         addch(ACS_RARROW);
@@ -1209,7 +1232,7 @@ int info()
         attron(COLOR_PAIR(2));
         addch(ACS_LARROW);
         attroff(COLOR_PAIR(2));
-        // Pause Game - warnai [BACKSPACE]
+
         mvprintw(mid_y_border + 8, center_x("Pause Game      : [BACKSPACE]", mid_x + 6), "Pause Game     : ");
         attron(COLOR_PAIR(14));
         printw("[BACKSPACE]");
@@ -1225,7 +1248,8 @@ int info()
         mvprintw(mid_y_border + 11, center_x("Save Data      : [S]         ", mid_x + 6), "Save Data      : ");
         attron(COLOR_PAIR(5));
         printw("[S]");
-        attroff(COLOR_PAIR(5));
+        attroff(COLOR_PAIR(5)); // to here
+
         mvprintw(mid_y - 1, 3, "");
         attron(COLOR_PAIR(16));
         printw("[ESC]");
@@ -1316,7 +1340,7 @@ void printLeaderboard(int y, int x)
             }
 
             mvwprintw(printBoard, i + 3, 2, "%2d.    %-20s              %5d", i + 1, board[i].nama, board[i].score);
-            
+
             if (i == 0)
             {
                 wattroff(printBoard, COLOR_PAIR(19));
