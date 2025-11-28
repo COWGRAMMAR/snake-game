@@ -41,7 +41,7 @@ leaderboard board[MAX_DATA];
 int count;
 
 // score
-int score = 20;
+int score = 0;
 char score_str[16];
 
 // game state
