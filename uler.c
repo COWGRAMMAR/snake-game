@@ -508,37 +508,64 @@ void writeLeaderboard(int y, int x)
     char name[50];
     int rewriteIndex = -1;
 
-    // Window for input
-    WINDOW *inputBox = newwin(3, 40, y, x); // Height 7, width 40, position according to arguments
+    while (1)   // LOOP UNTIL VALID INPUT
+    {
+        // Input window
+        WINDOW *inputBox = newwin(3, 40, y, x);
 
-    wattron(inputBox, COLOR_PAIR(3));
-    box(inputBox, 0, 0);
-    wattroff(inputBox, COLOR_PAIR(3));
+        wattron(inputBox, COLOR_PAIR(3));
+        box(inputBox, 0, 0);
+        wattroff(inputBox, COLOR_PAIR(3));
 
-    // draw border for save box
-    attron(COLOR_PAIR(16));
-    draw_border2(0, 0, screen_width, screen_height);
-    attroff(COLOR_PAIR(16));
+        // Outer border
+        attron(COLOR_PAIR(16));
+        draw_border2(0, 0, screen_width, screen_height);
+        attroff(COLOR_PAIR(16));
 
-    attron(COLOR_PAIR(1));
-    print_inputName(9, screen_width / 2 - 12);
-    attroff(COLOR_PAIR(1));
+        // Title text
+        attron(COLOR_PAIR(1));
+        print_inputName(9, screen_width / 2 - 12);
+        attroff(COLOR_PAIR(1));
 
-    refresh();
+        refresh();
 
-    // draw input
-    mvwprintw(inputBox, 1, 2, "Name : ");
-    wrefresh(inputBox);
+        // Input field
+        mvwprintw(inputBox, 1, 2, "Name : ");
+        wrefresh(inputBox);
 
-    echo();
-    mvwgetnstr(inputBox, 1, 9, name, sizeof(name) - 1);
-    noecho();
+        echo();
+        mvwgetnstr(inputBox, 1, 9, name, sizeof(name) - 1);
+        noecho();
 
-    delwin(inputBox);
-    clear();
-    refresh();
+        delwin(inputBox);
+        clear();
+        refresh();
 
-    // Check if the name already exists
+        // Remove trailing newline if it exists
+        name[strcspn(name, "\n")] = '\0';
+
+        // INPUT VALIDATION 
+        if (strlen(name) == 0)
+            continue;
+
+        int onlySpace = 1;
+        for (int i = 0; name[i]; i++)
+        {
+            if (name[i] != ' ')
+            {
+                onlySpace = 0;
+                break;
+            }
+        }
+
+        if (onlySpace)
+            continue;
+
+        // Input is valid, exit loop
+        break;
+    }
+
+    // Check if name already exists
     for (int i = 0; i < count; i++)
     {
         if (strcmp(board[i].nama, name) == 0)
@@ -548,7 +575,7 @@ void writeLeaderboard(int y, int x)
         }
     }
 
-    // if rewrite → clear the file first
+    // If rewriting, clear file first
     if (rewriteIndex != -1)
     {
         FILE *clearf = fopen("data.txt", "w");
@@ -557,7 +584,7 @@ void writeLeaderboard(int y, int x)
 
     FILE *fptr = fopen("data.txt", "a");
 
-    // write the data
+    // Write leaderboard data
     if (rewriteIndex == -1)
     {
         fprintf(fptr, "%s;%d\n", name, score);
@@ -577,6 +604,7 @@ void writeLeaderboard(int y, int x)
 
     nodelay(win, TRUE);
 }
+
 
 // quit game function
 void quit_game()
